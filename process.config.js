@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "fabric",
       cwd: "./",
-      script: "./index.js",
+      script: "./src/index.js",
       watch: false,
       ignore_watch: ["uploads"],
       env_production: {
