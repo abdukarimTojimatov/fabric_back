@@ -17,83 +17,86 @@ const paymentSchema = new mongoose.Schema({
   },
 });
 
-const salesOrderSchema = new mongoose.Schema({
-  orderNumber: {
-    type: Number,
-    unique: true,
-    required: true,
-  },
-  customer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Customer",
-    required: true,
-  },
-  total_amount: { type: Number },
-  total_origin_amount: { type: Number },
-  total_income_amount: { type: Number },
-  totalPaid: {
-    type: Number,
-    default: 0,
-  },
-  totalDebt: {
-    type: Number,
-    default: 0,
-  },
-  payments: [paymentSchema],
-  paymentStatus: {
-    type: String,
-    enum: ["pending", "paid", "partially-paid", "cancelled"],
-    default: function () {
-      if (this.totalDebt === 0) {
-        return "paid";
-      } else if (this.totalPaid === 0) {
-        return "pending";
-      } else if (this.totalPaid < this.total_amount) {
-        return "partially-paid";
-      } else {
-        return "pending";
-      }
+const salesOrderSchema = new mongoose.Schema(
+  {
+    orderNumber: {
+      type: Number,
+      unique: true,
+      required: true,
+    },
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+      required: true,
+    },
+    total_amount: { type: Number },
+    total_origin_amount: { type: Number },
+    total_income_amount: { type: Number },
+    totalPaid: {
+      type: Number,
+      default: 0,
+    },
+    totalDebt: {
+      type: Number,
+      default: 0,
+    },
+    payments: [paymentSchema],
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "partially-paid", "cancelled"],
+      default: function () {
+        if (this.totalDebt === 0) {
+          return "paid";
+        } else if (this.totalPaid === 0) {
+          return "pending";
+        } else if (this.totalPaid < this.total_amount) {
+          return "partially-paid";
+        } else {
+          return "pending";
+        }
+      },
+    },
+    customerType: {
+      type: String,
+      enum: ["fakturali", "fakturasiz", "naqd", "plastik"],
+    },
+    shippingAddress: {
+      name: { type: String },
+      street: { type: String },
+      city: { type: String },
+    },
+    orderNotes: {
+      type: String,
+      required: false,
+    },
+    autoNumber: {
+      type: String,
+      required: false,
+    },
+    tax: {
+      type: Number,
+      min: 0,
+    },
+    status: {
+      type: String,
+      enum: [
+        "draft",
+        "confirmed",
+        "in-production",
+        "shipped",
+        "completed",
+        "cancelled",
+      ],
+      default: "draft",
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
   },
-  customerType: {
-    type: String,
-    enum: ["fakturali", "fakturasiz", "naqd", "plastik"],
-  },
-  shippingAddress: {
-    name: { type: String },
-    street: { type: String },
-    city: { type: String },
-  },
-  orderNotes: {
-    type: String,
-    required: false,
-  },
-  autoNumber: {
-    type: String,
-    required: false,
-  },
-  tax: {
-    type: Number,
-    min: 0,
-  },
-  status: {
-    type: String,
-    enum: [
-      "draft",
-      "confirmed",
-      "in-production",
-      "shipped",
-      "completed",
-      "cancelled",
-    ],
-    default: "draft",
-  },
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-});
+  { timestamps: true, versionKey: false }
+);
 
 salesOrderSchema.plugin(mongoosePaginate);
 

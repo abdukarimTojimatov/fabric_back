@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
 
-const supplierSchema = new mongoose.Schema(
+const customerSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -20,7 +20,7 @@ const supplierSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
-    ourDebt: {
+    customerDebt: {
       type: String,
       required: false,
     },
@@ -32,14 +32,10 @@ const supplierSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
-    ourDebt: {
-      type: Date,
-      required: false,
-    },
   },
   { timestamps: true, versionKey: false }
 );
 
-supplierSchema.plugin(mongoosePaginate);
-const Supplier = mongoose.model("Supplier", supplierSchema);
-module.exports = Supplier;
+customerSchema.plugin(mongoosePaginate);
+const Customer = mongoose.model("Customer", customerSchema);
+module.exports = Customer;

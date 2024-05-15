@@ -1,21 +1,24 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
-const stockRawMaterial = new mongoose.Schema({
-  rawMaterial: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "RawMaterial",
-    required: true,
-    unique: true,
+const stockRawMaterial = new mongoose.Schema(
+  {
+    rawMaterial: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "RawMaterial",
+      required: true,
+      unique: true,
+    },
+    quantityInStock: {
+      type: Number,
+      default: 0,
+    },
+    minimumQuantityStock: {
+      type: Number,
+      default: 0,
+    },
   },
-  quantityInStock: {
-    type: Number,
-    default: 0,
-  },
-  minimumQuantityStock: {
-    type: Number,
-    default: 0,
-  },
-});
+  { timestamps: true, versionKey: false }
+);
 stockRawMaterial.plugin(mongoosePaginate);
 const StockRawMaterial = mongoose.model("StockRawMaterial", stockRawMaterial);
 
