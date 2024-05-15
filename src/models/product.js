@@ -34,11 +34,6 @@ const productSchema = new mongoose.Schema({
   description: {
     type: String,
   },
-  product_otherCost: {
-    type: Number,
-    required: false,
-    min: 0,
-  },
   ingredients: [
     {
       rawMaterial: {

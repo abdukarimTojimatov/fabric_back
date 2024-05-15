@@ -15,6 +15,11 @@ const stockProduct = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  unitOfMeasurement: {
+    type: String,
+    required: true,
+    enum: ["kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna"],
+  },
 });
 stockProduct.plugin(mongoosePaginate);
 const StockProduct = mongoose.model("StockProduct", stockProduct);

@@ -28,7 +28,7 @@ module.exports = {
       ).exec();
 
       req.body.unitOfMeasurement = material.unitOfMeasurement;
-
+      req.body.user = req.user._id;
       const newPurchase = new StockPurchase(req.body);
       const doc = await newPurchase.save();
       res.status(201).json(doc);

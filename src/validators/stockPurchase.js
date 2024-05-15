@@ -5,6 +5,7 @@ const createSchema = Joi.object({
   supplier: Joi.string().required(),
   quantityPurchased: Joi.number().optional(),
   costPerUnit: Joi.number().min(0),
+  unitOfMeasurement: Joi.string().required(),
 });
 
 const updateSchema = Joi.object({
@@ -13,6 +14,7 @@ const updateSchema = Joi.object({
   quantityPurchased: Joi.number().optional().min(1),
   costPerUnit: Joi.number().optional().min(0),
   id: Joi.string().required(),
+  unitOfMeasurement: Joi.string().optional(),
 });
 
 const deleteSchema = Joi.object({

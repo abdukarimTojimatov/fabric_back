@@ -1,13 +1,7 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
-//
-//
-//
+
 const salesOrderItemSchema = new mongoose.Schema({
-  orderDate: {
-    type: Date,
-    default: Date.now(),
-  },
   customer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Customer",
@@ -28,56 +22,22 @@ const salesOrderItemSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
-  unitPrice: {
-    type: Number,
+  unitOfMeasurement: {
+    type: String,
     required: true,
-    min: 0,
+    enum: ["kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna"],
   },
-  sellingPrice: {
-    type: Number,
-    required: true,
-    min: 0,
-  },
-  incomePrice: {
-    type: Number,
-    required: true,
-    min: 0,
-  },
+  total_amount: { type: Number },
+  total_origin_amount: { type: Number },
+  total_income_amount: { type: Number },
   subtotal: {
     type: Number,
     required: true,
     min: 0,
   },
-  tax: {
-    type: Number,
-    min: 0,
-  },
-  total: {
-    type: Number,
-    required: true,
-    min: 0,
-  },
-  shippingAddress: {
-    name: { type: String },
-    street: { type: String },
-    city: { type: String },
-  },
-  orderNotes: {
-    type: String,
-  },
-  status: {
-    type: String,
-    enum: [
-      "draft",
-      "confirmed",
-      "in-production",
-      "shipped",
-      "completed",
-      "cancelled",
-    ],
-    default: "draft",
-  },
 });
+
 salesOrderItemSchema.plugin(mongoosePaginate);
+
 const SalesOrderItem = mongoose.model("SalesOrderItem", salesOrderItemSchema);
 module.exports = SalesOrderItem;

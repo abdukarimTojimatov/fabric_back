@@ -48,6 +48,7 @@ module.exports = {
         quantity,
         ingredients: ingredientsWithTotalQuantity,
         completionDate: Date.now(),
+        user: req.user._id,
       });
 
       const doc = await newOrder.save();
