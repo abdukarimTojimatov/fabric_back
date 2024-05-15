@@ -1,9 +1,11 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
+
 const salesOrderSchema = new mongoose.Schema({
-  //
-  orderDate: {
-    type: Date,
+  orderNumber: {
+    type: Number,
+    unique: true,
+    required: true,
   },
   customer: {
     type: mongoose.Schema.Types.ObjectId,
@@ -25,6 +27,15 @@ const salesOrderSchema = new mongoose.Schema({
   },
   orderNotes: {
     type: String,
+    required: false,
+  },
+  autoNumber: {
+    type: String,
+    required: false,
+  },
+  tax: {
+    type: Number,
+    min: 0,
   },
   status: {
     type: String,
@@ -39,6 +50,29 @@ const salesOrderSchema = new mongoose.Schema({
     default: "draft",
   },
 });
+
 salesOrderSchema.plugin(mongoosePaginate);
+
+// Pre-save middleware to generate orderNumber
+salesOrderSchema.pre("save", async function (next) {
+  try {
+    if (!this.orderNumber) {
+      const lastOrder = await this.constructor.findOne(
+        {},
+        {},
+        { sort: { orderNumber: -1 } }
+      );
+      if (lastOrder) {
+        this.orderNumber = lastOrder.orderNumber + 1;
+      } else {
+        this.orderNumber = 1;
+      }
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 const SalesOrder = mongoose.model("SalesOrder", salesOrderSchema);
 module.exports = SalesOrder;

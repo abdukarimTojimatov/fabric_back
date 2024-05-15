@@ -12,28 +12,18 @@ const {
   findAll,
 } = require("../validators/product");
 
-//router.use(authenticate);
+router.use(authenticate);
 
 const permitAdd = permit("product", ["create"]);
-router.post(
-  "/",
-  //permitAdd,
-  validator.body(createSchema),
-  Controller.addNew
-);
+router.post("/", permitAdd, validator.body(createSchema), Controller.addNew);
 
 const permitReadAll = permit("product", ["readAll"]);
-router.post(
-  "/all",
-  //permitReadAll,
-  validator.body(findAll),
-  Controller.findAll
-);
+router.post("/all", permitReadAll, validator.body(findAll), Controller.findAll);
 
 const permitUpdate = permit("product", ["update"]);
 router.put(
   "/:id",
-  //permitUpdate,
+  permitUpdate,
   validator.params(updateSchema),
   Controller.updateOne
 );
@@ -41,7 +31,7 @@ router.put(
 const permitDelete = permit("product", ["delete"]);
 router.delete(
   "/:id",
-  //permitDelete,
+  permitDelete,
   validator.params(deleteSchema),
   Controller.deleteOne
 );
@@ -49,7 +39,7 @@ router.delete(
 const permitFindOne = permit("product", ["read"]);
 router.get(
   "/:id",
-  //permitFindOne,
+  permitFindOne,
   validator.params(readSchema),
   Controller.findOne
 );

@@ -18,7 +18,8 @@ const stockPurchaseSchema = new mongoose.Schema({
   },
   unitOfMeasurement: {
     type: String,
-    enum: ["kg", "g", "meter.kv", "meter", "piece", "liter", "ml", "sack"],
+    required: true,
+    enum: ["kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna"],
   },
   purchaseDate: {
     type: Date,

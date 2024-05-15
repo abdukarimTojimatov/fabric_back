@@ -7,12 +7,15 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
+    minLength: 4,
+    maxLength: 50,
   },
   phone: {
     type: Number,
     required: true,
     unique: true,
-    minLength: 10,
+    minLength: 9,
+    maxLength: 9,
   },
   password: {
     type: String,
@@ -20,8 +23,8 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["admin", "manager", "worker"],
-    default: "worker",
+    enum: ["admin", "direktor", "rahbar", "sotuvchi", "omborchi"],
+    default: "rahbar",
   },
   profile: {
     firstName: {

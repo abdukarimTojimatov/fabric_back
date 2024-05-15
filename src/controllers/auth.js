@@ -5,7 +5,10 @@ const { ErrorHandler } = require("../util/error");
 module.exports = {
   login: async function (req, res, next) {
     try {
-      const doc = await User.findOne({ phone: req.body?.phone }).exec();
+      const doc = await User.findOne({
+        phone: req.body?.phone,
+        employmentStatus: "active",
+      }).exec();
 
       if (!doc)
         return res
@@ -17,9 +20,7 @@ module.exports = {
           {
             _id: doc?._id,
             title: {
-              firstName: doc?.profile.firstName,
-              lastName: doc?.profile.lastName,
-              middleName: doc?.profile.middleName,
+              username: doc?.profile.username,
             },
             role: doc?.role,
           },

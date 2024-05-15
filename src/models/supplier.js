@@ -19,11 +19,19 @@ const supplierSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  ourDebt: {
+    type: String,
+    required: false,
+  },
   startedDate: {
     type: Date,
     required: true,
   },
   finishedDate: {
+    type: Date,
+    required: false,
+  },
+  ourDebt: {
     type: Date,
     required: false,
   },

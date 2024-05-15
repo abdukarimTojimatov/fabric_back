@@ -19,7 +19,7 @@ const rawMaterialSchema = new mongoose.Schema({
   unitOfMeasurement: {
     type: String,
     required: true,
-    enum: ["kg", "g", "meter", "piece", "liter", "ml", "sack"],
+    enum: ["kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna"],
   },
 });
 

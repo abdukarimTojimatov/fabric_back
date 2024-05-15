@@ -1,8 +1,12 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
+//
+//
+//
 const salesOrderItemSchema = new mongoose.Schema({
   orderDate: {
     type: Date,
+    default: Date.now(),
   },
   customer: {
     type: mongoose.Schema.Types.ObjectId,
@@ -12,6 +16,11 @@ const salesOrderItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Product",
+    required: true,
+  },
+  salesOrder: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SalesOrder",
     required: true,
   },
   quantity: {
@@ -47,11 +56,6 @@ const salesOrderItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0,
-  },
-  paymentStatus: {
-    type: String,
-    enum: ["pending", "paid", "partially-paid", "cancelled"],
-    default: "pending",
   },
   shippingAddress: {
     name: { type: String },

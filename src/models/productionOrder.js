@@ -35,7 +35,7 @@ const productionOrder = new mongoose.Schema({
   ],
   unitOfMeasurement: {
     type: String,
-    enum: ["kg", "g", "meter.kv", "meter", "piece", "liter", "ml", "sack"],
+    enum: ["kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna"],
   },
   status: {
     type: String,
