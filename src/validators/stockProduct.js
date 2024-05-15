@@ -5,6 +5,7 @@ const createSchema = Joi.object({
   product: Joi.string().required(),
   quantityInStock: Joi.number(),
   minimumQuantityStock: Joi.number(),
+  unitOfMeasurement: Joi.string().required(),
 });
 
 const updateSchema = Joi.object({
@@ -12,6 +13,7 @@ const updateSchema = Joi.object({
   quantityInStock: Joi.number().optional(),
   minimumQuantityStock: Joi.number().optional(),
   id: Joi.string().required(),
+  unitOfMeasurement: Joi.string().optional(),
 });
 
 const deleteSchema = Joi.object({

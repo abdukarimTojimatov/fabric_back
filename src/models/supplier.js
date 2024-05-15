@@ -32,10 +32,6 @@ const supplierSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
-    ourDebt: {
-      type: Date,
-      required: false,
-    },
   },
   { timestamps: true, versionKey: false }
 );

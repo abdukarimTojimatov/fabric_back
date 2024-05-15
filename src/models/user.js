@@ -48,6 +48,7 @@ const userSchema = new mongoose.Schema(
     },
     startDate: {
       type: Date,
+      Default: Date.now(),
     },
     endDate: {
       type: Date,

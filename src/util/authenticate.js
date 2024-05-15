@@ -1,14 +1,14 @@
 const jwt = require("jsonwebtoken");
+const util = require("util");
 const { ErrorHandler } = require("./error");
-const bluebird = require("bluebird");
 const User = require("../models/user");
 
-bluebird.promisifyAll(jwt);
+const verifyAsync = util.promisify(jwt.verify);
 
 module.exports = async function (req, res, next) {
   try {
     const bearerHeader = req.headers["authorization"];
-
+    console.log("bearerHeader", bearerHeader);
     if (!bearerHeader) {
       throw new ErrorHandler(403, "Error: Not authorized", "MA103");
     }
@@ -16,7 +16,7 @@ module.exports = async function (req, res, next) {
     const bearer = bearerHeader.split(" ");
     const bearerToken = bearer[1];
 
-    const decoded = await jwt.verifyAsync(
+    const decoded = await verifyAsync(
       bearerToken,
       process.env.TOKEN_SECRET_KEY
     );

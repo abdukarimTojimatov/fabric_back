@@ -1,6 +1,9 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
+const util = require("util");
 const { ErrorHandler } = require("../util/error");
+
+const signAsync = util.promisify(jwt.sign);
 
 module.exports = {
   login: async function (req, res, next) {
@@ -16,7 +19,7 @@ module.exports = {
           .json({ code: "A112", message: "user not found" });
 
       if (doc.password === req.body?.password) {
-        const token = jwt.sign(
+        const token = await signAsync(
           {
             _id: doc?._id,
             title: {
