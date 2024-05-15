@@ -4,6 +4,9 @@ const createSchema = Joi.object({
   rawMaterial: Joi.string().required(),
   quantityInStock: Joi.number().default(0).min(0),
   minimumQuantityStock: Joi.number().default(0).min(0),
+  unitOfMeasurement: Joi.string()
+    .valid("kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna")
+    .required(),
 });
 
 const updateSchema = Joi.object({
@@ -11,6 +14,9 @@ const updateSchema = Joi.object({
   quantityInStock: Joi.number().optional().min(0),
   minimumQuantityStock: Joi.number().optional().min(0),
   id: Joi.string().required(),
+  unitOfMeasurement: Joi.string()
+    .valid("kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna")
+    .optional(),
 });
 
 const deleteSchema = Joi.object({

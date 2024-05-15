@@ -4,7 +4,13 @@ const createSchema = Joi.object({
   username: Joi.string().required(),
   password: Joi.string().required(),
   phone: Joi.number().required(),
-  role: Joi.string().valid("admin", "manager", "worker").default("worker"),
+  role: Joi.string().valid(
+    "admin",
+    "direktor",
+    "rahbar",
+    "sotuvchi",
+    "omborchi"
+  ),
   profile: Joi.object({
     firstName: Joi.string().optional(),
     lastName: Joi.string().optional(),
@@ -23,7 +29,9 @@ const updateSchema = Joi.object({
   id: Joi.string().required(),
   username: Joi.string().optional(),
   password: Joi.string().optional(),
-  role: Joi.string().valid("admin", "manager", "worker").optional(),
+  role: Joi.string()
+    .valid("admin", "direktor", "rahbar", "sotuvchi", "omborchi")
+    .optional(),
   profile: Joi.object({
     firstName: Joi.string().optional(),
     lastName: Joi.string().optional(),

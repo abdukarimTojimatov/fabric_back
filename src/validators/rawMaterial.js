@@ -5,7 +5,7 @@ const createSchema = Joi.object({
   description: Joi.string().optional().allow(""),
   rawMaterialPrice: Joi.number().optional(), // Allow an empty description
   unitOfMeasurement: Joi.string()
-    .valid("kg", "g", "meter", "dona", "liter", "ml", "sack")
+    .valid("kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna")
     .required(),
 });
 
@@ -15,7 +15,7 @@ const updateSchema = Joi.object({
   description: Joi.string().optional().allow(""),
   rawMaterialPrice: Joi.number().optional(), // Allow an empty description
   unitOfMeasurement: Joi.string()
-    .valid("kg", "g", "meter", "dona", "liter", "ml", "sack")
+    .valid("kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna")
     .optional(),
 });
 
