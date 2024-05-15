@@ -1,40 +1,45 @@
 const jwt = require("jsonwebtoken");
 const { ErrorHandler } = require("./error");
 const bluebird = require("bluebird");
-bluebird.promisifyAll(jwt);
 const User = require("../models/user");
 
+bluebird.promisifyAll(jwt);
+
 module.exports = async function (req, res, next) {
-  const bearerHeader = req.headers["authorization"];
-  if (bearerHeader) {
-    try {
-      const bearer = bearerHeader.split(" ");
-      const bearerToken = bearer[1];
-      const decoded = await jwt.verifyAsync(
-        bearerToken,
-        process.env.TOKEN_SECRET_KEY
-      );
-      if (!decoded)
-        return next(
-          new ErrorHandler(403, "Error: Token is not valid", "MA100")
-        );
+  try {
+    const bearerHeader = req.headers["authorization"];
 
-      const userActive = await User.findById(decoded._id).exec();
-
-      if (userActive?.employmentStatus == "active") {
-        req.user = decoded;
-        return next();
-      } else {
-        return next(
-          new ErrorHandler(403, "Error: Token is not valid", "MA101")
-        );
-      }
-    } catch (error) {
-      return next(
-        new ErrorHandler(403, "Error: Authorization failed", "MA102")
-      );
+    if (!bearerHeader) {
+      throw new ErrorHandler(403, "Error: Not authorized", "MA103");
     }
-  } else {
-    return next(new ErrorHandler(403, "Error: Not authorized", "MA103"));
+
+    const bearer = bearerHeader.split(" ");
+    const bearerToken = bearer[1];
+
+    const decoded = await jwt.verifyAsync(
+      bearerToken,
+      process.env.TOKEN_SECRET_KEY
+    );
+
+    if (!decoded) {
+      throw new ErrorHandler(403, "Error: Token is not valid", "MA100");
+    }
+
+    const userActive = await User.findById(decoded._id).exec();
+
+    if (!userActive || userActive.employmentStatus !== "active") {
+      throw new ErrorHandler(403, "Error: Token is not valid", "MA101");
+    }
+
+    req.user = decoded;
+    return next();
+  } catch (error) {
+    return next(
+      new ErrorHandler(
+        403,
+        `Error: Authorization failed - ${error.message}`,
+        "MA102"
+      )
+    );
   }
 };
