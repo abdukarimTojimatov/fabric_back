@@ -38,7 +38,7 @@ module.exports = {
         return res.status(404).json({ message: "Customer not found" });
       }
 
-      return res.status(200).json(updatedSupplier);
+      return res.status(200).json(updatedCustomer);
     } catch (err) {
       console.error(err);
       return next(

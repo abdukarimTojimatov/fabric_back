@@ -69,18 +69,24 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit = 10, page = 1, search } = req.query;
+      const { limit, page, search } = req.body;
       let query = {};
       if (search) {
         query["name"] = { $regex: new RegExp(search, "i") };
       }
-      const options = {
-        limit: parseInt(limit),
-        page: parseInt(page),
-      };
 
-      const materials = await RawMaterial.paginate(query, options);
-      res.status(200).json(materials);
+      let materials;
+      if (!req.body.page || !req.body.limit) {
+        materials = await RawMaterial.find(query);
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+        };
+        materials = await RawMaterial.paginate(query, options);
+      }
+
+      return res.json(materials);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find raw materials", err.message));

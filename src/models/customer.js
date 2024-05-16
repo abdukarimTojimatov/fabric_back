@@ -27,6 +27,7 @@ const customerSchema = new mongoose.Schema(
     startedDate: {
       type: Date,
       required: true,
+      default: Date.now(),
     },
     finishedDate: {
       type: Date,

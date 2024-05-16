@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema(
         type: String,
       },
     },
+    dailySalary: {
+      type: Number,
+      required: false,
+    },
     employmentStatus: {
       type: String,
       enum: ["active", "left", "paused"],

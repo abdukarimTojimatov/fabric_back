@@ -13,7 +13,7 @@ const paymentSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    default: Date.now,
+    default: Date.now(),
   },
 });
 
@@ -22,7 +22,7 @@ const salesOrderSchema = new mongoose.Schema(
     orderNumber: {
       type: Number,
       unique: true,
-      required: true,
+      required: false,
     },
     customer: {
       type: mongoose.Schema.Types.ObjectId,

@@ -85,22 +85,24 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit = 10, page = 1, search } = req.body;
+      const { limit, page, search } = req.body;
       let query = {};
-
       if (search) {
         query["name"] = { $regex: new RegExp(search, "i") };
       }
 
-      const options = {
-        limit: parseInt(limit),
-        page: parseInt(page),
-      };
+      let suppliers;
+      if (!req.body.page || !req.body.limit) {
+        suppliers = await Supplier.find(query);
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+        };
+        suppliers = await Supplier.paginate(query, options);
+      }
 
-      const suppliers = await Supplier.paginate(query, options);
-
-      if (!suppliers) throw new Error("Suppliers not found");
-      return res.status(200).json(suppliers);
+      return res.json(suppliers);
     } catch (err) {
       console.error(err);
       return next(

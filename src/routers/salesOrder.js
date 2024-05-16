@@ -10,10 +10,12 @@ const permitAdd = permit("salesOrder", ["create"]);
 router.route("/").post(permitAdd, Controller.addNew);
 
 const permitReadAll = permit("salesOrder", ["readAll"]);
-router.route("/all").get(permitReadAll, Controller.findAll);
+router.route("/all").post(permitReadAll, Controller.findAll);
 
 const permitUpdate = permit("salesOrder", ["update"]);
 router.route("/:id").put(permitUpdate, Controller.updateOne);
+
+router.route("/updatePayment/:id").put(permitUpdate, Controller.updatePayment);
 
 const permitDelete = permit("salesOrder", ["delete"]);
 router.route("/:id").delete(permitDelete, Controller.deleteOne);

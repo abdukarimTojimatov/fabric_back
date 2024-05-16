@@ -9,6 +9,10 @@ module.exports = {
       permissions: ["read", "readAll", "create", "update", "delete"],
     },
     {
+      resource: "customer",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
+    {
       resource: "stockRawMaterial",
       permissions: ["read", "readAll", "create", "update", "delete"],
     },

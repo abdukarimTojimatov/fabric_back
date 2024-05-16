@@ -21,6 +21,7 @@ module.exports = {
         items,
       } = req.body;
       let user = req.user._id;
+      console.log("1");
       const salesOrder = new SalesOrder({
         customer,
         payments,
@@ -42,7 +43,7 @@ module.exports = {
 
         const total_amount = item.quantity * product.product_sellingPrice;
         const total_origin_amount = item.quantity * product.product_originPrice;
-        // Deduct quantity from stock
+
         const total_income_amount = total_amount - total_origin_amount;
         const stockProduct = await StockProduct.findOne({
           product: item.product,
@@ -50,6 +51,12 @@ module.exports = {
         if (!stockProduct) {
           throw new Error(
             `Stock for product with ID ${item.product} not found`
+          );
+        }
+
+        if (stockProduct.quantityInStock < item.quantity) {
+          throw new Error(
+            `Not enough quantity in stock for product with ID ${item.product}`
           );
         }
         stockProduct.quantityInStock -= item.quantity;
@@ -68,10 +75,25 @@ module.exports = {
         });
 
         await salesOrderItem.save();
-        return salesOrderItem._id;
+        return salesOrderItem;
       });
 
-      salesOrder.items = await Promise.all(itemPromises);
+      const savedSalesOrderItems = await Promise.all(itemPromises);
+
+      let totalSalesOrderAmount = 0;
+      let totalSalesOrderOriginAmount = 0;
+      let totalSalesOrderIncomeAmount = 0;
+
+      savedSalesOrderItems.forEach((salesOrderItem) => {
+        totalSalesOrderAmount += salesOrderItem.total_amount;
+        totalSalesOrderOriginAmount += salesOrderItem.total_origin_amount;
+        totalSalesOrderIncomeAmount += salesOrderItem.total_income_amount;
+      });
+
+      salesOrder.total_amount = totalSalesOrderAmount;
+      salesOrder.total_origin_amount = totalSalesOrderOriginAmount;
+      salesOrder.total_income_amount = totalSalesOrderIncomeAmount;
+
       await salesOrder.save();
 
       res
@@ -104,14 +126,14 @@ module.exports = {
   updatePayment: async function (req, res, next) {
     try {
       const { orderId } = req.params;
-      const { amount, method, date } = req.body;
-
-      const order = await SalesOrder.findById(orderId);
+      const { amount, method } = req.body;
+      console.log("req.params", req.params);
+      const order = await SalesOrder.findById(orderId).exec();
       if (!order) {
         return res.status(404).json({ error: "Order not found" });
       }
 
-      const payment = { amount, method, date };
+      const payment = { amount, method };
       await order.updatePayments(payment);
 
       res.status(200).json({ message: "Payment updated successfully", order });
@@ -154,7 +176,13 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const orders = await SalesOrder.find().exec();
+      const { limit, page, search } = req.body;
+      let query = {};
+      const options = {
+        limit: parseInt(limit),
+        page: parseInt(page),
+      };
+      const orders = await SalesOrder.paginate(query, options);
       res.status(200).json(orders);
     } catch (err) {
       console.error(err);

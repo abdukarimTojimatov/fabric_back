@@ -24,8 +24,8 @@ const readSchema = Joi.object({
 });
 
 const findAll = Joi.object({
-  limit: Joi.number().min(1).default(10),
-  page: Joi.number().min(1).default(1),
+  limit: Joi.number().min(1).optional(),
+  page: Joi.number().min(1).optional(),
   search: Joi.string().optional(),
 });
 
