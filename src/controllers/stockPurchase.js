@@ -92,27 +92,71 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const purchases = await StockPurchase.find()
-        .populate({
-          path: "rawMaterial",
-          select: "name",
-          model: "RawMaterial",
-          strictPopulate: false,
-        })
-        .populate({
-          path: "supplier",
-          select: "name",
-          model: "Supplier",
-          strictPopulate: false,
-        })
-        .populate({
-          path: "user",
-          select: "username",
-          model: "User",
-          strictPopulate: false,
-        })
-        .exec();
-      res.status(200).json(purchases);
+      const { limit, page } = req.body;
+
+      let purchases;
+
+      if (!req.body.page || !req.body.limit) {
+        // Find all without pagination
+        purchases = await StockPurchase.find()
+          .populate({
+            path: "rawMaterial",
+            select: "name",
+            model: "RawMaterial",
+            strictPopulate: false,
+          })
+          .populate({
+            path: "supplier",
+            select: "name",
+            model: "Supplier",
+            strictPopulate: false,
+          })
+          .populate({
+            path: "user",
+            select: "username",
+            model: "User",
+            strictPopulate: false,
+          })
+          .exec();
+      } else {
+        // Paginate and then populate
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+        };
+
+        // Use pagination and then manually populate
+        const paginatedResults = await StockPurchase.paginate({}, options);
+        const populatedDocs = await StockPurchase.populate(
+          paginatedResults.docs,
+          [
+            {
+              path: "rawMaterial",
+              select: "name",
+              model: "RawMaterial",
+              strictPopulate: false,
+            },
+            {
+              path: "supplier",
+              select: "name",
+              model: "Supplier",
+              strictPopulate: false,
+            },
+            {
+              path: "user",
+              select: "username",
+              model: "User",
+              strictPopulate: false,
+            },
+          ]
+        );
+
+        // Include pagination metadata in the response
+        paginatedResults.docs = populatedDocs; // Replace docs with populated docs
+        purchases = paginatedResults;
+      }
+
+      return res.status(200).json(purchases);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find purchases", err.message));

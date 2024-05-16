@@ -67,15 +67,49 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const stocks = await StockRawMaterial.find()
-        .populate({
+      const { limit, page, search } = req.body;
+      let query = {};
+
+      if (search) {
+        query["name"] = { $regex: new RegExp(search, "i") };
+      }
+
+      let stocks;
+      if (!req.body.page || !req.body.limit) {
+        // Find all without pagination
+        stocks = await StockRawMaterial.find(query)
+          .populate({
+            path: "rawMaterial",
+            select: "name",
+            model: "RawMaterial",
+            strictPopulate: false,
+          })
+          .exec();
+      } else {
+        // Paginate and then populate
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+        };
+
+        // Use pagination and then manually populate
+        const paginatedResults = await StockRawMaterial.paginate(
+          query,
+          options
+        );
+        stocks = await StockRawMaterial.populate(paginatedResults.docs, {
           path: "rawMaterial",
           select: "name",
           model: "RawMaterial",
           strictPopulate: false,
-        })
-        .exec();
-      res.status(200).json(stocks);
+        });
+
+        // Include pagination metadata in the response
+        paginatedResults.docs = stocks; // Replace docs with populated docs
+        stocks = paginatedResults;
+      }
+
+      return res.json(stocks);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find stocks", err.message));

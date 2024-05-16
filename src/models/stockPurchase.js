@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const mongoosePaginate = require("mongoose-paginate-v2");
 const stockPurchaseSchema = new mongoose.Schema(
   {
     rawMaterial: {
@@ -63,6 +63,6 @@ const stockPurchaseSchema = new mongoose.Schema(
   },
   { timestamps: true, versionKey: false }
 );
-
+stockPurchaseSchema.plugin(mongoosePaginate);
 const StockPurchase = mongoose.model("StockPurchase", stockPurchaseSchema);
 module.exports = StockPurchase;
