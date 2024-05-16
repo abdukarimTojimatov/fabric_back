@@ -67,7 +67,14 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const stocks = await StockRawMaterial.find().exec();
+      const stocks = await StockRawMaterial.find()
+        .populate({
+          path: "rawMaterial",
+          select: "name",
+          model: "RawMaterial",
+          strictPopulate: false,
+        })
+        .exec();
       res.status(200).json(stocks);
     } catch (err) {
       console.error(err);

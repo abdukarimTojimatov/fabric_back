@@ -92,7 +92,26 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const purchases = await StockPurchase.find().exec();
+      const purchases = await StockPurchase.find()
+        .populate({
+          path: "rawMaterial",
+          select: "name",
+          model: "RawMaterial",
+          strictPopulate: false,
+        })
+        .populate({
+          path: "supplier",
+          select: "name",
+          model: "Supplier",
+          strictPopulate: false,
+        })
+        .populate({
+          path: "user",
+          select: "username",
+          model: "User",
+          strictPopulate: false,
+        })
+        .exec();
       res.status(200).json(purchases);
     } catch (err) {
       console.error(err);
