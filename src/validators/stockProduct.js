@@ -3,7 +3,7 @@ const { search } = require("../router");
 
 const createSchema = Joi.object({
   product: Joi.string().required(),
-  quantityInStock: Joi.number(),
+  quantityInStock: Joi.number().optional(),
   minimumQuantityStock: Joi.number(),
   unitOfMeasurement: Joi.string().required(),
 });

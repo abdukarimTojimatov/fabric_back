@@ -50,7 +50,12 @@ module.exports = {
   findOne: async function (req, res, next) {
     try {
       const { id } = req.params;
-      const stock = await StockProduct.findById(id).exec();
+      const stock = await StockProduct.findById(id)
+        .populate({
+          path: "product",
+          select: "name",
+        })
+        .exec();
 
       if (!stock) {
         return res.status(404).json({ message: "Stock not found" });
@@ -71,6 +76,10 @@ module.exports = {
       const options = {
         limit: parseInt(limit),
         page: parseInt(page),
+        populate: {
+          path: "product",
+          select: ["name"],
+        },
       };
       const stocks = await StockProduct.paginate(query, options);
       res.status(200).json(stocks);
