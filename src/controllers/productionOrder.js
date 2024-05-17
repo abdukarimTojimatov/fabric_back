@@ -106,7 +106,20 @@ module.exports = {
   findOne: async function (req, res, next) {
     try {
       const { id } = req.params;
-      const order = await ProductionOrder.findById(id).exec();
+      const order = await ProductionOrder.findById(id)
+        .populate({
+          path: "ingredients.rawMaterial",
+          select: ["name", "unitOfMeasurement"],
+        })
+        .populate({
+          path: "product",
+          select: ["name", "unitOfMeasurement"],
+        })
+        .populate({
+          path: "user",
+          select: ["name", "email"],
+        })
+        .exec();
 
       if (!order) {
         return res.status(404).json({ message: "Production order not found" });
