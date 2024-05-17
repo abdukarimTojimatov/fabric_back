@@ -22,7 +22,7 @@ router
 const permitReadAll = permit("productionOrder", ["readAll"]);
 router
   .route("/all")
-  .get(permitReadAll, validator.query(findAll), Controller.findAll);
+  .post(permitReadAll, validator.query(findAll), Controller.findAll);
 
 const permitUpdate = permit("productionOrder", ["update"]);
 router

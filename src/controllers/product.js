@@ -61,7 +61,12 @@ module.exports = {
   findOne: async function (req, res, next) {
     try {
       const { id } = req.params;
-      const product = await Product.findById(id).exec();
+      const product = await Product.findById(id)
+        .populate({
+          path: "ingredients.rawMaterial",
+          select: "name",
+        })
+        .exec();
 
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
@@ -76,18 +81,33 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit = 10, page = 1, search } = req.body;
+      const { limit, page, search } = req.body;
       let query = {};
       if (search) {
         query["name"] = { $regex: new RegExp(search, "i") };
       }
 
-      const options = {
-        limit: parseInt(limit),
-        page: parseInt(page),
-      };
+      let products;
+      if (!req.body.page || !req.body.limit) {
+        products = await Product.find(query)
+          .populate({
+            path: "ingredients.rawMaterial",
+            select: ["name", "unitOfMeasurement"],
+          })
+          .exec();
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+          populate: {
+            path: "ingredients.rawMaterial",
+            select: ["name", "unitOfMeasurement"],
+          },
+        };
 
-      const products = await Product.paginate(query, options);
+        products = await Product.paginate(query, options);
+      }
+
       res.status(200).json(products);
     } catch (err) {
       console.error(err);

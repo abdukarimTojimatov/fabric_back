@@ -6,7 +6,7 @@ const StockProduct = require("../models/stockProduct");
 module.exports = {
   addNew: async function (req, res, next) {
     try {
-      const { product, quantity } = req.body;
+      const { product, quantity, unitOfMeasurement } = req.body;
       const orderedProduct = await Product.findById(product).populate(
         "ingredients"
       );
@@ -49,6 +49,7 @@ module.exports = {
         ingredients: ingredientsWithTotalQuantity,
         completionDate: Date.now(),
         user: req.user._id,
+        unitOfMeasurement: unitOfMeasurement,
       });
 
       const doc = await newOrder.save();
@@ -122,8 +123,53 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const orders = await ProductionOrder.find().exec();
-      res.status(200).json(orders);
+      const { limit, page, search } = req.body;
+      let query = {};
+      if (search) {
+        query["name"] = { $regex: new RegExp(search, "i") };
+      }
+
+      let productionOrder;
+
+      if (!limit || !page) {
+        productionOrder = await ProductionOrder.find(query)
+          .populate({
+            path: "ingredients.rawMaterial",
+            select: ["name", "unitOfMeasurement"],
+          })
+          .populate({
+            path: "product",
+            select: ["name", "unitOfMeasurement"],
+          })
+          .populate({
+            path: "user",
+            select: ["name", "email"],
+          })
+          .exec();
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+          populate: [
+            {
+              path: "ingredients.rawMaterial",
+              select: ["name", "unitOfMeasurement"],
+            },
+            {
+              path: "product",
+              select: ["name", "unitOfMeasurement"],
+            },
+            {
+              path: "user",
+              select: ["name", "email"],
+            },
+          ],
+        };
+
+        productionOrder = await ProductionOrder.paginate(query, options);
+      }
+
+      res.status(200).json(productionOrder);
     } catch (err) {
       console.error(err);
       next(

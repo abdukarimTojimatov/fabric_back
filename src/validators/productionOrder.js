@@ -8,6 +8,9 @@ const createSchema = Joi.object({
     .optional(),
   scheduledDate: Joi.date().optional(),
   completionDate: Joi.date().optional(),
+  unitOfMeasurement: Joi.string()
+    .valid("kg", "g", "meter.kv", "meter", "dona", "liter", "ml", "sack")
+    .optional(),
 });
 
 const updateSchema = Joi.object({
@@ -22,6 +25,9 @@ const updateSchema = Joi.object({
         totalQuantity: Joi.number().integer().min(0).optional(),
       })
     )
+    .optional(),
+  unitOfMeasurement: Joi.string()
+    .valid("kg", "g", "meter.kv", "meter", "dona", "liter", "ml", "sack")
     .optional(),
   status: Joi.string()
     .valid("expecting", "in-progress", "completed", "cancelled")
@@ -39,11 +45,8 @@ const readSchema = Joi.object({
 });
 
 const findAll = Joi.object({
-  limit: Joi.number().integer().min(1).default(10),
-  page: Joi.number().integer().min(1).default(1),
-  status: Joi.string()
-    .valid("pending", "in-progress", "completed", "cancelled")
-    .optional(),
+  limit: Joi.number().integer().optional(),
+  page: Joi.number().integer().optional(),
 });
 
 module.exports = {
