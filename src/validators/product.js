@@ -5,7 +5,7 @@ const createSchema = Joi.object({
   product_images: Joi.array().items(Joi.string()).optional(),
   product_status: Joi.string().valid("paused", "active", "deleted").optional(),
   unitOfMeasurement: Joi.string()
-    .valid("kg", "g", "meter.kv", "meter", "dona", "liter", "ml", "sack")
+    .valid("kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna")
     .optional(),
   product_sellingPrice: Joi.number().required(),
   description: Joi.string().optional(),
@@ -27,7 +27,7 @@ const updateSchema = Joi.object({
   product_originPrice: Joi.number().optional(),
   product_status: Joi.string().valid("paused", "active", "deleted").optional(),
   unitOfMeasurement: Joi.string()
-    .valid("kg", "g", "meter.kv", "meter", "dona", "liter", "ml", "sack")
+    .valid("kg", "g", "meter", "dona", "liter", "ml", "qop", "metrkv", "tonna")
     .optional(),
   product_sellingPrice: Joi.number().optional(),
   description: Joi.string().optional(),
