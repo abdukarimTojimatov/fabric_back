@@ -6,7 +6,6 @@ const stockRawMaterial = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "RawMaterial",
       required: true,
-      unique: true,
     },
     quantityInStock: {
       type: Number,
