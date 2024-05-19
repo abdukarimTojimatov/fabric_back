@@ -13,25 +13,34 @@ module.exports = {
       }).exec();
 
       if (!exceedStockRawMaterial) {
-        res.status(404).json({
-          message:
-            "Raw material not found on our lists,please create on stock this raw material",
+        const newStock = new StockRawMaterial({
+          rawMaterial: req.body.rawMaterial,
+          quantityInStock: req.body.quantityPurchased,
+          unitOfMeasurement: material.unitOfMeasurement,
         });
+
+        const doc1 = await newStock.save();
+        req.body.unitOfMeasurement = material.unitOfMeasurement;
+        req.body.user = req.user._id;
+        const newPurchase = new StockPurchase(req.body);
+        const doc = await newPurchase.save();
+        res.status(201).json(doc);
+      } else {
+        const updatedStockRawMaterial =
+          await StockRawMaterial.findByIdAndUpdate(
+            exceedStockRawMaterial._id,
+            {
+              $inc: { quantityInStock: req.body.quantityPurchased },
+            },
+            { new: true }
+          ).exec();
+
+        req.body.unitOfMeasurement = material.unitOfMeasurement;
+        req.body.user = req.user._id;
+        const newPurchase = new StockPurchase(req.body);
+        const doc = await newPurchase.save();
+        res.status(201).json(doc);
       }
-
-      const updatedStockRawMaterial = await StockRawMaterial.findByIdAndUpdate(
-        exceedStockRawMaterial._id,
-        {
-          $inc: { quantityInStock: req.body.quantityPurchased },
-        },
-        { new: true }
-      ).exec();
-
-      req.body.unitOfMeasurement = material.unitOfMeasurement;
-      req.body.user = req.user._id;
-      const newPurchase = new StockPurchase(req.body);
-      const doc = await newPurchase.save();
-      res.status(201).json(doc);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to add new purchase", err.message));

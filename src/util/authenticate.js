@@ -8,7 +8,7 @@ const verifyAsync = util.promisify(jwt.verify);
 module.exports = async function (req, res, next) {
   try {
     const bearerHeader = req.headers["authorization"];
-    console.log("bearerHeader", bearerHeader);
+
     if (!bearerHeader) {
       throw new ErrorHandler(403, "Error: Not authorized", "MA103");
     }

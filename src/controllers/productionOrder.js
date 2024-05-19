@@ -39,10 +39,17 @@ module.exports = {
 
       const stockProduct = await StockProduct.findOne({ product });
       if (!stockProduct) {
-        throw new Error(`Product with ID ${product} not found in stock`);
+        const newStock = new StockProduct({
+          product,
+          quantityInStock: quantity,
+          unitOfMeasurement: unitOfMeasurement,
+        });
+        const doc = await newStock.save();
+      } else {
+        stockProduct.quantityInStock += quantity;
+        await stockProduct.save();
       }
-      stockProduct.quantityInStock += quantity;
-      await stockProduct.save();
+
       const newOrder = new ProductionOrder({
         product,
         quantity,
