@@ -106,7 +106,6 @@ module.exports = {
       let purchases;
 
       if (!req.body.page || !req.body.limit) {
-        // Find all without pagination
         purchases = await StockPurchase.find()
           .populate({
             path: "rawMaterial",
