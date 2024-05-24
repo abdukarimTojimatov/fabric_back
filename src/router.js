@@ -16,6 +16,12 @@ const ExpenceCategoryRouter = require("./routers/expenceCategory");
 const CustomerDebtRouter = require("./routers/customerDebt");
 const Customer = require("./routers/customer");
 
+//
+//
+//
+//
+//
+
 router.use("/auth", AuthRouter);
 router.use("/user", UserRouter);
 router.use("/supplier", SupplierRouter);

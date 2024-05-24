@@ -92,12 +92,16 @@ module.exports = {
         query["name"] = { $regex: new RegExp(search, "i") };
       }
 
-      const options = {
-        limit: parseInt(limit),
-        page: parseInt(page),
-      };
-
-      const customers = await Customer.paginate(query, options);
+      let customers;
+      if (!req.body.page || !req.body.limit) {
+        customers = await Customer.find(query);
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+        };
+        customers = await Customer.paginate(query, options);
+      }
 
       if (!customers) throw new Error("Customers not found");
       return res.status(200).json(customers);

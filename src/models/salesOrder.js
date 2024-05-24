@@ -1,171 +1,71 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
 
-const paymentSchema = new mongoose.Schema({
-  amount: {
-    type: Number,
-    required: true,
-  },
-  method: {
-    type: String,
-    enum: ["cash", "card", "transfer"],
-    required: true,
-  },
-  date: {
-    type: Date,
-    default: Date.now(),
-  },
-});
-
 const salesOrderSchema = new mongoose.Schema(
   {
-    orderNumber: {
-      type: Number,
-      unique: true,
-      required: false,
-    },
-    customer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Customer",
-      required: true,
-    },
-    total_amount: { type: Number },
-    total_origin_amount: { type: Number },
-    total_income_amount: { type: Number },
-    totalPaid: {
-      type: Number,
-      default: 0,
-    },
-    totalDebt: {
-      type: Number,
-      default: 0,
-    },
-    payments: [paymentSchema],
-    paymentStatus: {
-      type: String,
-      enum: ["pending", "paid", "partially-paid", "cancelled"],
-      default: function () {
-        if (this.totalDebt === 0) {
-          return "paid";
-        } else if (this.totalPaid === 0) {
-          return "pending";
-        } else if (this.totalPaid < this.total_amount) {
-          return "partially-paid";
-        } else {
-          return "pending";
-        }
-      },
-    },
+    customer: { type: String, required: true },
+    customerType: { type: String, required: true },
+    shippingAddress: { type: String, required: false },
+    orderNotes: { type: String, required: false },
     customerType: {
       type: String,
       enum: ["fakturali", "fakturasiz", "naqd", "plastik"],
+      required: true,
     },
-    shippingAddress: {
-      name: { type: String },
-      street: { type: String },
-      city: { type: String },
-    },
-    orderNotes: {
-      type: String,
-      required: false,
-    },
-    autoNumber: {
-      type: String,
-      required: false,
-    },
-    tax: {
-      type: Number,
-      min: 0,
-    },
+    autoNumber: { type: String, required: false },
+    tax: { type: Number, required: false },
     status: {
       type: String,
       enum: [
-        "draft",
+        "pending",
         "confirmed",
-        "in-production",
         "shipped",
-        "completed",
+        "delivered",
+        "hold",
         "cancelled",
       ],
-      default: "draft",
-    },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
       required: true,
+    },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    total_amount: { type: Number, required: true },
+    total_origin_amount: { type: Number, required: true },
+    total_income_amount: { type: Number, required: true },
+    totalDebt: { type: Number, default: 0 },
+    totalPaid: { type: Number, default: 0 },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "partially-paid", "paid"],
+      default: "pending",
     },
   },
   { timestamps: true, versionKey: false }
 );
 
-salesOrderSchema.plugin(mongoosePaginate);
-
 salesOrderSchema.pre("save", async function (next) {
-  try {
-    if (!this.orderNumber) {
-      const lastOrder = await this.constructor.findOne(
-        {},
-        {},
-        { sort: { orderNumber: -1 } }
-      );
-      if (lastOrder) {
-        this.orderNumber = lastOrder.orderNumber + 1;
-      } else {
-        this.orderNumber = 1;
-      }
-    }
+  if (this.isNew) {
+    const currentYear = new Date().getFullYear();
+    const yearPrefix = currentYear.toString().substr(-2);
 
-    let totalPaid = 0;
-    this.payments.forEach((payment) => {
-      totalPaid += payment.amount;
-    });
-    this.totalPaid = totalPaid;
-    this.totalDebt = this.total_amount - totalPaid;
+    const lastOrder = await this.constructor
+      .findOne({
+        autoNumber: { $regex: `^${yearPrefix}` },
+      })
+      .sort({ autoNumber: -1 });
 
-    if (this.totalDebt === 0) {
-      this.paymentStatus = "paid";
-    } else if (this.totalPaid === 0) {
-      this.paymentStatus = "pending";
-    } else if (this.totalPaid < this.total_amount) {
-      this.paymentStatus = "partially-paid";
+    let orderNumber;
+    if (lastOrder) {
+      const lastNumber = parseInt(lastOrder.autoNumber.slice(2), 10);
+      orderNumber = lastNumber + 1;
     } else {
-      this.paymentStatus = "pending";
+      orderNumber = 1;
     }
 
-    next();
-  } catch (error) {
-    next(error);
+    this.autoNumber = `${yearPrefix}${orderNumber.toString().padStart(4, "0")}`;
   }
+  next();
 });
 
-salesOrderSchema.methods.updatePayments = async function (payment) {
-  try {
-    this.payments.push(payment);
-
-    let totalPaid = 0;
-    this.payments.forEach((payment) => {
-      totalPaid += payment.amount;
-    });
-
-    this.totalPaid = totalPaid;
-    this.totalDebt = this.total_amount - totalPaid;
-
-    if (this.totalDebt === 0) {
-      this.paymentStatus = "paid";
-    } else if (this.totalPaid === 0) {
-      this.paymentStatus = "pending";
-    } else if (this.totalPaid < this.total_amount) {
-      this.paymentStatus = "partially-paid";
-    } else {
-      this.paymentStatus = "pending";
-    }
-
-    await this.save();
-    return this;
-  } catch (error) {
-    throw error;
-  }
-};
+salesOrderSchema.plugin(mongoosePaginate);
 
 const SalesOrder = mongoose.model("SalesOrder", salesOrderSchema);
 module.exports = SalesOrder;

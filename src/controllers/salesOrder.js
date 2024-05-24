@@ -1,9 +1,10 @@
 const SalesOrder = require("../models/salesOrder");
 const SalesOrderItem = require("../models/salesOrderItem");
 const Product = require("../models/product");
-const User = require("../models/user");
 const StockProduct = require("../models/stockProduct");
+const Payment = require("../models/payment");
 const { ErrorHandler } = require("../util/error");
+const supplier = require("./supplier");
 
 module.exports = {
   addNew: async function (req, res, next) {
@@ -11,7 +12,6 @@ module.exports = {
       const {
         customer,
         payments,
-        paymentStatus,
         customerType,
         shippingAddress,
         orderNotes,
@@ -20,12 +20,10 @@ module.exports = {
         status,
         items,
       } = req.body;
-      let user = req.user._id;
-      console.log("1");
+      const user = req.user._id;
+
       const salesOrder = new SalesOrder({
         customer,
-        payments,
-        paymentStatus,
         customerType,
         shippingAddress,
         orderNotes,
@@ -43,8 +41,8 @@ module.exports = {
 
         const total_amount = item.quantity * product.product_sellingPrice;
         const total_origin_amount = item.quantity * product.product_originPrice;
-
         const total_income_amount = total_amount - total_origin_amount;
+
         const stockProduct = await StockProduct.findOne({
           product: item.product,
         });
@@ -93,8 +91,41 @@ module.exports = {
       salesOrder.total_amount = totalSalesOrderAmount;
       salesOrder.total_origin_amount = totalSalesOrderOriginAmount;
       salesOrder.total_income_amount = totalSalesOrderIncomeAmount;
+      salesOrder.totalDebt = totalSalesOrderAmount;
+      salesOrder.totalPaid = 0;
+      salesOrder.paymentStatus = "pending";
 
       await salesOrder.save();
+
+      // Create initial payment entries if any payments are provided
+      if (payments && payments.length > 0) {
+        const paymentPromises = payments.map(async (payment) => {
+          const newPayment = new Payment({
+            salesOrderId: salesOrder._id,
+            amount: payment.amount,
+            method: payment.method,
+          });
+          await newPayment.save();
+          return newPayment;
+        });
+
+        const savedPayments = await Promise.all(paymentPromises);
+
+        const totalPaid = savedPayments.reduce(
+          (sum, payment) => sum + payment.amount,
+          0
+        );
+        salesOrder.totalPaid = totalPaid;
+        salesOrder.totalDebt = totalSalesOrderAmount - totalPaid;
+
+        if (salesOrder.totalDebt === 0) {
+          salesOrder.paymentStatus = "paid";
+        } else if (salesOrder.totalPaid > 0) {
+          salesOrder.paymentStatus = "partially-paid";
+        }
+
+        await salesOrder.save();
+      }
 
       res
         .status(201)
@@ -125,7 +156,7 @@ module.exports = {
 
   updatePayment: async function (req, res, next) {
     try {
-      const { orderId } = req.params;
+      const orderId = req.params.id;
       const { amount, method } = req.body;
       console.log("req.params", req.params);
       const order = await SalesOrder.findById(orderId).exec();
@@ -133,8 +164,33 @@ module.exports = {
         return res.status(404).json({ error: "Order not found" });
       }
 
-      const payment = { amount, method };
-      await order.updatePayments(payment);
+      if (amount > order.totalDebt) {
+        return res.status(400).json({
+          error:
+            "Mijoz ko'p pul to'lamoqda, iltimos faqatgina qarzga teng bo'lgan pul miqdorini kiriting",
+        });
+      }
+
+      const payment = new Payment({ salesOrderId: orderId, amount, method });
+      await payment.save();
+
+      const payments = await Payment.find({ salesOrderId: orderId });
+      const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+
+      order.totalPaid = totalPaid;
+      order.totalDebt = order.total_amount - totalPaid;
+
+      if (order.totalDebt === 0) {
+        order.paymentStatus = "paid";
+      } else if (order.totalPaid === 0) {
+        order.paymentStatus = "pending";
+      } else if (order.totalPaid < order.total_amount) {
+        order.paymentStatus = "partially-paid";
+      } else {
+        order.paymentStatus = "pending";
+      }
+
+      await order.save();
 
       res.status(200).json({ message: "Payment updated successfully", order });
     } catch (error) {
@@ -151,7 +207,11 @@ module.exports = {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      res.status(200).json({ message: "Order deleted successfully" });
+      await Payment.deleteMany({ salesOrderId: id });
+
+      res
+        .status(200)
+        .json({ message: "Order and related payments deleted successfully" });
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to delete order", err.message));
@@ -161,13 +221,28 @@ module.exports = {
   findOne: async function (req, res, next) {
     try {
       const { id } = req.params;
-      const order = await SalesOrder.findById(id).exec();
+      const order = await SalesOrder.findById(id)
+        .populate({
+          path: "customer",
+          select: "name",
+          model: "Customer",
+          strictPopulate: false,
+        })
+        .populate({
+          path: "user",
+          select: "username",
+          model: "User",
+          strictPopulate: false,
+        })
+        .exec();
 
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      res.status(200).json(order);
+      const payments = await Payment.find({ salesOrderId: id });
+
+      res.status(200).json({ order, payments });
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find order", err.message));
@@ -176,14 +251,72 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit, page, search } = req.body;
+      const { limit, page, search, customer, dateFrom, dateTo, user } =
+        req.body;
       let query = {};
-      const options = {
-        limit: parseInt(limit),
-        page: parseInt(page),
+
+      if (search) {
+        query["name"] = { $regex: new RegExp(search, "i") };
+      }
+
+      if (customer) {
+        query.customer = customer;
+      }
+
+      if (user) {
+        query.user = user;
+      }
+      let salesOrders;
+
+      const parseDate = (dateString) => {
+        const [year, month, day] = dateString.split(":").map(Number);
+        return new Date(Date.UTC(year, month - 1, day));
       };
-      const orders = await SalesOrder.paginate(query, options);
-      res.status(200).json(orders);
+
+      if (dateFrom && dateTo) {
+        const fromDate = parseDate(dateFrom);
+        const toDate = parseDate(dateTo);
+        query.createdAt = { $gte: fromDate, $lte: toDate };
+      } else if (dateFrom) {
+        const date = parseDate(dateFrom);
+        const nextDate = new Date(date);
+        nextDate.setUTCDate(date.getUTCDate() + 1);
+        query.createdAt = { $gte: date, $lt: nextDate };
+      }
+      if (!page || !limit) {
+        salesOrders = await SalesOrder.find(query)
+          .populate({
+            path: "customer",
+            select: "name",
+            model: "Customer",
+          })
+          .populate({
+            path: "user",
+            select: "username",
+            model: "User",
+          });
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+          populate: [
+            {
+              path: "customer",
+              select: "name",
+              model: "Customer",
+            },
+            {
+              path: "user",
+              select: "username",
+              model: "User",
+            },
+          ],
+        };
+
+        salesOrders = await SalesOrder.paginate(query, options);
+      }
+
+      res.status(200).json(salesOrders);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find orders", err.message));

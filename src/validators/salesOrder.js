@@ -1,56 +1,36 @@
 const Joi = require("joi");
 
 const createSchema = Joi.object({
-  orderDate: Joi.date().optional(),
   customer: Joi.string().required(),
-  total_amount: Joi.number().optional(),
-  total_origin_amount: Joi.number().optional(),
-  total_income_amount: Joi.number().optional(),
-  paymentStatus: Joi.string()
-    .valid("pending", "paid", "partially-paid", "cancelled")
-    .optional(),
-  shippingAddress: Joi.object({
-    name: Joi.string().optional(),
-    street: Joi.string().optional(),
-    city: Joi.string().optional(),
-  }).optional(),
+  customerType: Joi.string()
+    .valid("fakturali", "fakturasiz", "naqd", "plastik")
+    .required(),
+  shippingAddress: Joi.string().optional(),
   orderNotes: Joi.string().optional(),
+  autoNumber: Joi.string().optional(),
+  tax: Joi.number().optional(),
   status: Joi.string()
-    .valid(
-      "draft",
-      "confirmed",
-      "in-production",
-      "shipped",
-      "completed",
-      "cancelled"
-    )
-    .optional(),
+    .valid("pending", "confirmed", "shipped", "delivered", "cancelled")
+    .required(),
 });
 
 const updateSchema = Joi.object({
-  orderDate: Joi.date().optional(),
   customer: Joi.string().optional(),
+  customerType: Joi.string()
+    .valid("fakturali", "fakturasiz", "naqd", "plastik")
+    .optional(),
+  shippingAddress: Joi.string().optional(),
+  orderNotes: Joi.string().optional(),
+  autoNumber: Joi.string().optional(),
+  tax: Joi.number().optional(),
+  status: Joi.string()
+    .valid("pending", "confirmed", "shipped", "delivered", "cancelled")
+    .optional(),
   total_amount: Joi.number().optional(),
   total_origin_amount: Joi.number().optional(),
   total_income_amount: Joi.number().optional(),
   paymentStatus: Joi.string()
-    .valid("pending", "paid", "partially-paid", "cancelled")
-    .optional(),
-  shippingAddress: Joi.object({
-    name: Joi.string().optional(),
-    street: Joi.string().optional(),
-    city: Joi.string().optional(),
-  }).optional(),
-  orderNotes: Joi.string().optional(),
-  status: Joi.string()
-    .valid(
-      "draft",
-      "confirmed",
-      "in-production",
-      "shipped",
-      "completed",
-      "cancelled"
-    )
+    .valid("pending", "paid", "partially-paid")
     .optional(),
 });
 
@@ -63,20 +43,13 @@ const readSchema = Joi.object({
 });
 
 const findAll = Joi.object({
-  limit: Joi.number().integer().min(1).default(10),
-  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().optional(),
+  page: Joi.number().integer().optional(),
   paymentStatus: Joi.string()
-    .valid("pending", "paid", "partially-paid", "cancelled")
+    .valid("pending", "paid", "partially-paid")
     .optional(),
   status: Joi.string()
-    .valid(
-      "draft",
-      "confirmed",
-      "in-production",
-      "shipped",
-      "completed",
-      "cancelled"
-    )
+    .valid("pending", "confirmed", "shipped", "delivered", "cancelled")
     .optional(),
 });
 

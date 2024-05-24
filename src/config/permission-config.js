@@ -56,6 +56,14 @@ module.exports = {
       resource: "customerDebt",
       permissions: ["read", "readAll", "create", "update", "delete"],
     },
+    {
+      resource: "customer",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
+    {
+      resource: "salesOrder",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
   ],
 
   manager: [
@@ -111,6 +119,14 @@ module.exports = {
       resource: "customerDebt",
       permissions: ["read", "readAll", "create", "update", "delete"],
     },
+    {
+      resource: "customer",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
+    {
+      resource: "salesOrder",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
   ],
   worker: [
     {
@@ -163,6 +179,14 @@ module.exports = {
     },
     {
       resource: "customerDebt",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
+    {
+      resource: "customer",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
+    {
+      resource: "salesOrder",
       permissions: ["read", "readAll", "create", "update", "delete"],
     },
   ],

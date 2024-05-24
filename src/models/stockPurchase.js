@@ -33,8 +33,8 @@ const stockPurchaseSchema = new mongoose.Schema(
       ],
     },
     purchaseDate: {
-      type: Date,
-      default: Date().now,
+      type: String,
+      default: true,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
