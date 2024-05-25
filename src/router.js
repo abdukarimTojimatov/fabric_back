@@ -15,6 +15,7 @@ const ExpencesRouter = require("./routers/expences");
 const ExpenceCategoryRouter = require("./routers/expenceCategory");
 const CustomerDebtRouter = require("./routers/customerDebt");
 const Customer = require("./routers/customer");
+const Reports = require("./routers/reports");
 
 //
 //
@@ -38,5 +39,6 @@ router.use("/expences", ExpencesRouter);
 router.use("/expenceCategory", ExpenceCategoryRouter);
 router.use("/customerDebt", CustomerDebtRouter);
 router.use("/customer", Customer);
+router.use("/reports", Reports);
 
 module.exports = router;

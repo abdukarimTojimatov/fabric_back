@@ -12,7 +12,7 @@ const salesOrderSchema = new mongoose.Schema(
       enum: ["fakturali", "fakturasiz", "naqd", "plastik"],
       required: true,
     },
-    autoNumber: { type: String, required: false },
+    autoNumber: { type: String, required: false, unique: true },
     tax: { type: Number, required: false },
     status: {
       type: String,
@@ -34,8 +34,8 @@ const salesOrderSchema = new mongoose.Schema(
     totalPaid: { type: Number, default: 0 },
     paymentStatus: {
       type: String,
-      enum: ["pending", "partially-paid", "paid"],
-      default: "pending",
+      enum: ["unpaid", "partially-paid", "paid"],
+      default: "unpaid",
     },
   },
   { timestamps: true, versionKey: false }
@@ -50,7 +50,8 @@ salesOrderSchema.pre("save", async function (next) {
       .findOne({
         autoNumber: { $regex: `^${yearPrefix}` },
       })
-      .sort({ autoNumber: -1 });
+      .sort({ autoNumber: -1 })
+      .exec();
 
     let orderNumber;
     if (lastOrder) {

@@ -5,6 +5,10 @@ module.exports = {
       permissions: ["read", "readAll", "create", "update", "delete"],
     },
     {
+      resource: "reports",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
+    {
       resource: "supplier",
       permissions: ["read", "readAll", "create", "update", "delete"],
     },
@@ -68,6 +72,10 @@ module.exports = {
 
   manager: [
     {
+      resource: "reports",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
+    {
       resource: "user",
       permissions: ["read", "readAll", "create", "update", "delete"],
     },
@@ -129,6 +137,10 @@ module.exports = {
     },
   ],
   worker: [
+    {
+      resource: "reports",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
     {
       resource: "user",
       permissions: ["read", "readAll", "create", "update", "delete"],

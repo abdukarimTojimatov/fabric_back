@@ -30,7 +30,7 @@ const updateSchema = Joi.object({
   total_origin_amount: Joi.number().optional(),
   total_income_amount: Joi.number().optional(),
   paymentStatus: Joi.string()
-    .valid("pending", "paid", "partially-paid")
+    .valid("unpaid", "paid", "partially-paid")
     .optional(),
 });
 
@@ -46,7 +46,7 @@ const findAll = Joi.object({
   limit: Joi.number().integer().optional(),
   page: Joi.number().integer().optional(),
   paymentStatus: Joi.string()
-    .valid("pending", "paid", "partially-paid")
+    .valid("unpaid", "paid", "partially-paid")
     .optional(),
   status: Joi.string()
     .valid("pending", "confirmed", "shipped", "delivered", "cancelled")

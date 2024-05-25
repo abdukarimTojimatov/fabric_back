@@ -93,7 +93,7 @@ module.exports = {
       salesOrder.total_income_amount = totalSalesOrderIncomeAmount;
       salesOrder.totalDebt = totalSalesOrderAmount;
       salesOrder.totalPaid = 0;
-      salesOrder.paymentStatus = "pending";
+      salesOrder.paymentStatus = "unpaid";
 
       await salesOrder.save();
 
@@ -250,6 +250,80 @@ module.exports = {
   },
 
   findAll: async function (req, res, next) {
+    try {
+      const { limit, page, search, customer, dateFrom, dateTo, user } =
+        req.body;
+      let query = {};
+
+      if (search) {
+        query["name"] = { $regex: new RegExp(search, "i") };
+      }
+
+      if (customer) {
+        query.customer = customer;
+      }
+
+      if (user) {
+        query.user = user;
+      }
+      let salesOrders;
+
+      const parseDate = (dateString) => {
+        const [year, month, day] = dateString.split(":").map(Number);
+        return new Date(Date.UTC(year, month - 1, day));
+      };
+
+      if (dateFrom && dateTo) {
+        const fromDate = parseDate(dateFrom);
+        const toDate = parseDate(dateTo);
+        query.createdAt = { $gte: fromDate, $lte: toDate };
+      } else if (dateFrom) {
+        const date = parseDate(dateFrom);
+        const nextDate = new Date(date);
+        nextDate.setUTCDate(date.getUTCDate() + 1);
+        query.createdAt = { $gte: date, $lt: nextDate };
+      }
+      if (!page || !limit) {
+        salesOrders = await SalesOrder.find(query)
+          .populate({
+            path: "customer",
+            select: "name",
+            model: "Customer",
+          })
+          .populate({
+            path: "user",
+            select: "username",
+            model: "User",
+          });
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+          populate: [
+            {
+              path: "customer",
+              select: "name",
+              model: "Customer",
+            },
+            {
+              path: "user",
+              select: "username",
+              model: "User",
+            },
+          ],
+        };
+
+        salesOrders = await SalesOrder.paginate(query, options);
+      }
+
+      res.status(200).json(salesOrders);
+    } catch (err) {
+      console.error(err);
+      next(new ErrorHandler(400, "Failed to find orders", err.message));
+    }
+  },
+
+  reportDaily: async function (req, res, next) {
     try {
       const { limit, page, search, customer, dateFrom, dateTo, user } =
         req.body;
