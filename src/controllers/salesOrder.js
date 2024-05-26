@@ -221,6 +221,7 @@ module.exports = {
   findOne: async function (req, res, next) {
     try {
       const { id } = req.params;
+
       const order = await SalesOrder.findById(id)
         .populate({
           path: "customer",
@@ -242,7 +243,17 @@ module.exports = {
 
       const payments = await Payment.find({ salesOrderId: id });
 
-      res.status(200).json({ order, payments });
+      const salesItems = await SalesOrderItem.find({ salesOrder: id }).populate(
+        {
+          path: "product",
+          select: "name",
+          model: "Product",
+          strictPopulate: false,
+        }
+      );
+      //
+      res.status(200).json({ order, payments, salesItems });
+      //
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find order", err.message));
