@@ -157,22 +157,37 @@ module.exports = {
   updatePayment: async function (req, res, next) {
     try {
       const orderId = req.params.id;
-      const { amount, method } = req.body;
-      console.log("req.params", req.params);
+      const paymentsData = req.body;
+
+      // Validate that paymentsData is an array
+      if (!Array.isArray(paymentsData)) {
+        return res.status(400).json({ error: "Invalid payment data" });
+      }
+
       const order = await SalesOrder.findById(orderId).exec();
       if (!order) {
         return res.status(404).json({ error: "Order not found" });
       }
 
-      if (amount > order.totalDebt) {
+      // Calculate the total amount to be paid in this request
+      const totalAmountToPay = paymentsData.reduce(
+        (sum, payment) => sum + payment.amount,
+        0
+      );
+
+      if (totalAmountToPay > order.totalDebt) {
         return res.status(400).json({
           error:
             "Mijoz ko'p pul to'lamoqda, iltimos faqatgina qarzga teng bo'lgan pul miqdorini kiriting",
         });
       }
 
-      const payment = new Payment({ salesOrderId: orderId, amount, method });
-      await payment.save();
+      // Save each payment
+      for (let paymentData of paymentsData) {
+        const { amount, method } = paymentData;
+        const payment = new Payment({ salesOrderId: orderId, amount, method });
+        await payment.save();
+      }
 
       const payments = await Payment.find({ salesOrderId: orderId });
       const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
