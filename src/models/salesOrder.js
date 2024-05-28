@@ -4,28 +4,10 @@ const mongoosePaginate = require("mongoose-paginate-v2");
 const salesOrderSchema = new mongoose.Schema(
   {
     customer: { type: String, required: true },
-    customerType: { type: String, required: true },
     shippingAddress: { type: String, required: false },
     orderNotes: { type: String, required: false },
-    customerType: {
-      type: String,
-      enum: ["fakturali", "fakturasiz", "naqd", "plastik"],
-      required: true,
-    },
     autoNumber: { type: String, required: false, unique: true },
     tax: { type: Number, required: false },
-    status: {
-      type: String,
-      enum: [
-        "pending",
-        "confirmed",
-        "shipped",
-        "delivered",
-        "hold",
-        "cancelled",
-      ],
-      required: true,
-    },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     total_amount: { type: Number, required: true },
     total_origin_amount: { type: Number, required: true },

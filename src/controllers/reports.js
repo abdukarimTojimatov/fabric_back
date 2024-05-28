@@ -6,13 +6,12 @@ const Payment = require("../models/payment");
 const { ErrorHandler } = require("../util/error");
 
 module.exports = {
-  reportMonthly: async function (req, res, next) {
+  daysInMonth: async function (req, res, next) {
     try {
       const { year, month } = req.body;
 
       const startDate = new Date(Date.UTC(year, month - 1, 1));
       const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59));
-      console.log("startDate", startDate, "endDate", endDate);
 
       const totalSales = await SalesOrder.aggregate([
         {
@@ -53,14 +52,13 @@ module.exports = {
       next(new ErrorHandler(400, "Failed to find orders", err.message));
     }
   },
-  reportYearly: async function (req, res, next) {
+  monthsInYear: async function (req, res, next) {
     try {
       const { year } = req.body;
 
       // Get the start and end dates for the provided year
       const startDate = new Date(Date.UTC(year, 0, 1));
       const endDate = new Date(Date.UTC(year + 1, 0, 0, 23, 59, 59));
-      console.log("startDate", startDate, "endDate", endDate);
 
       const totalMonthlySales = await SalesOrder.aggregate([
         {
@@ -93,7 +91,7 @@ module.exports = {
       next(new ErrorHandler(400, "Failed to find orders", err.message));
     }
   },
-  reportAllYears: async function (req, res, next) {
+  allYears: async function (req, res, next) {
     try {
       const { startYear, endYear } = req.body;
       const yearlySales = await SalesOrder.aggregate([

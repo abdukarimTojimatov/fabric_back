@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "direktor", "rahbar", "sotuvchi", "omborchi"],
+      enum: ["admin", "direktor", "rahbar", "sotuvchi", "omborchi", "ishchi"],
       default: "rahbar",
     },
     profile: {
@@ -40,6 +40,11 @@ const userSchema = new mongoose.Schema(
       image: {
         type: String,
       },
+    },
+    userSalaryType: {
+      type: String,
+      enum: ["sales", "daily", "production"],
+      default: "daily",
     },
     dailySalary: {
       type: Number,

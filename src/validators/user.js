@@ -4,13 +4,17 @@ const createSchema = Joi.object({
   username: Joi.string().required(),
   password: Joi.string().required(),
   phone: Joi.number().required(),
+
   role: Joi.string().valid(
     "admin",
     "direktor",
     "rahbar",
     "sotuvchi",
-    "omborchi"
+    "omborchi",
+    "ishchi"
   ),
+  userSalaryType: Joi.string().valid("sales", "daily", "production").optional(),
+  dailySalary: Joi.number().optional(),
   profile: Joi.object({
     firstName: Joi.string().optional(),
     lastName: Joi.string().optional(),
@@ -37,6 +41,8 @@ const updateSchema = Joi.object({
     lastName: Joi.string().optional(),
     bornDate: Joi.date().optional(),
   }).optional(),
+  userSalaryType: Joi.string().valid("sales", "daily", "production").optional(),
+  dailySalary: Joi.number().optional(),
   employmentStatus: Joi.string().valid("active", "left", "paused").optional(),
   startDate: Joi.date().optional(),
   endDate: Joi.date().optional(),

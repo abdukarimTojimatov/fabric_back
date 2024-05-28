@@ -30,7 +30,6 @@ module.exports = {
       next(new ErrorHandler(400, "Failed to update expense", err.message));
     }
   },
-
   deleteOne: async function (req, res, next) {
     try {
       const { id } = req.params;

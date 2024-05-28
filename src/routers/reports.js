@@ -12,8 +12,8 @@ const {
   findAll,
 } = require("../validators/customer");
 
-router.route("/reportMonthly").post(Controller.reportMonthly);
-router.route("/reportYearly").post(Controller.reportYearly);
-router.route("/reportAllYears").post(Controller.reportAllYears);
+router.route("/daysInMonth").post(Controller.daysInMonth);
+router.route("/monthsInYear").post(Controller.monthsInYear);
+router.route("/allYears").post(Controller.allYears);
 
 module.exports = router;
