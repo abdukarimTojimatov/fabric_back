@@ -8,6 +8,7 @@ const createSchema = Joi.object({
 const updateSchema = Joi.object({
   name: Joi.string().optional(),
   description: Joi.string().optional(),
+  id: Joi.string().optional(),
 });
 
 const deleteSchema = Joi.object({
@@ -19,8 +20,8 @@ const readSchema = Joi.object({
 });
 
 const findAll = Joi.object({
-  limit: Joi.number().integer().min(1).default(10),
-  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().optional(),
+  page: Joi.number().integer().optional(),
 });
 
 module.exports = {

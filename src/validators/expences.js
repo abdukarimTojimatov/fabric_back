@@ -4,14 +4,13 @@ const createSchema = Joi.object({
   category: Joi.string().required(),
   description: Joi.string().optional(),
   amount: Joi.number().required().min(0),
-  date: Joi.date().default(new Date()),
 });
 
 const updateSchema = Joi.object({
   category: Joi.string().optional(),
   description: Joi.string().optional(),
   amount: Joi.number().optional().min(0),
-  date: Joi.date().optional(),
+  id: Joi.string().required(),
 });
 
 const deleteSchema = Joi.object({
@@ -23,8 +22,8 @@ const readSchema = Joi.object({
 });
 
 const findAll = Joi.object({
-  limit: Joi.number().integer().min(1).default(10),
-  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().optional(),
+  page: Joi.number().integer().optional(),
 });
 
 module.exports = {

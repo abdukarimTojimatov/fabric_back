@@ -1,3 +1,4 @@
+const { required } = require("joi");
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
 const expenseSchema = new mongoose.Schema(
@@ -10,17 +11,13 @@ const expenseSchema = new mongoose.Schema(
 
     description: {
       type: String,
+      required: false,
     },
 
     amount: {
       type: Number,
       required: true,
       min: 0,
-    },
-
-    date: {
-      type: Date,
-      default: Date.now,
     },
   },
   { timestamps: true, versionKey: false }

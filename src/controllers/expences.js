@@ -65,8 +65,40 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const expenses = await Expences.find().exec();
-      res.status(200).json(expenses);
+      const { limit, page, search } = req.body;
+      let query = {};
+      if (search) {
+        query["description"] = { $regex: new RegExp(search, "i") };
+      }
+      let expences;
+      if (!limit || !page) {
+        expences = await Expences.find(query)
+          .populate({
+            path: "category",
+            select: "name",
+            model: "ExpenseCategory",
+            strictPopulate: false,
+          })
+          .exec();
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+        };
+        let paginatedResult = await Expences.paginate(query, options);
+
+        expences = await Expences.populate(paginatedResult.docs, {
+          path: "category",
+          select: "name",
+          model: "ExpenseCategory",
+          strictPopulate: false,
+        });
+
+        paginatedResult.docs = expences;
+        expences = paginatedResult;
+      }
+
+      res.status(200).json(expences);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find expenses", err.message));

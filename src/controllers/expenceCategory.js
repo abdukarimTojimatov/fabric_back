@@ -79,8 +79,23 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const expenseCategories = await ExpenseCategory.find().exec();
-      res.status(200).json(expenseCategories);
+      const { limit, page, search } = req.body;
+      let query = {};
+      if (search) {
+        query["name"] = { $regex: new RegExp(search, "i") };
+      }
+      let categories;
+      if (!limit || !page) {
+        categories = await ExpenseCategory.find(query).exec();
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+        };
+        categories = await ExpenseCategory.paginate(query, options);
+      }
+
+      res.status(200).json(categories);
     } catch (err) {
       console.error(err);
       next(

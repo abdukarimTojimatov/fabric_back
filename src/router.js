@@ -13,7 +13,6 @@ const ProductRouter = require("./routers/product");
 const PaymentRouter = require("./routers/payment");
 const ExpencesRouter = require("./routers/expences");
 const ExpenceCategoryRouter = require("./routers/expenceCategory");
-const CustomerDebtRouter = require("./routers/customerDebt");
 const Customer = require("./routers/customer");
 const Reports = require("./routers/reports");
 
@@ -37,7 +36,6 @@ router.use("/product", ProductRouter);
 router.use("/payment", PaymentRouter);
 router.use("/expences", ExpencesRouter);
 router.use("/expenceCategory", ExpenceCategoryRouter);
-router.use("/customerDebt", CustomerDebtRouter);
 router.use("/customer", Customer);
 router.use("/reports", Reports);
 

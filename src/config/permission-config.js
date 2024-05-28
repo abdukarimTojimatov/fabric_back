@@ -5,6 +5,14 @@ module.exports = {
       permissions: ["read", "readAll", "create", "update", "delete"],
     },
     {
+      resource: "expense",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
+    {
+      resource: "expenseCategory",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
+    {
       resource: "reports",
       permissions: ["read", "readAll", "create", "update", "delete"],
     },
@@ -71,6 +79,14 @@ module.exports = {
   ],
 
   manager: [
+    {
+      resource: "expense",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
+    {
+      resource: "expenseCategory",
+      permissions: ["read", "readAll", "create", "update", "delete"],
+    },
     {
       resource: "reports",
       permissions: ["read", "readAll", "create", "update", "delete"],

@@ -159,7 +159,6 @@ module.exports = {
       const orderId = req.params.id;
       const paymentsData = req.body;
 
-      // Validate that paymentsData is an array
       if (!Array.isArray(paymentsData)) {
         return res.status(400).json({ error: "Invalid payment data" });
       }
@@ -169,7 +168,6 @@ module.exports = {
         return res.status(404).json({ error: "Order not found" });
       }
 
-      // Calculate the total amount to be paid in this request
       const totalAmountToPay = paymentsData.reduce(
         (sum, payment) => sum + payment.amount,
         0
