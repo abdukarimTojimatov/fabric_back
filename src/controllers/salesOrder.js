@@ -275,7 +275,7 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit, page, search, customer, dateFrom, dateTo, user } =
+      const { limit, page, search, status, customer, dateFrom, dateTo, user } =
         req.body;
       let query = {};
 
@@ -285,6 +285,10 @@ module.exports = {
 
       if (customer) {
         query.customer = customer;
+      }
+
+      if (status) {
+        query.paymentStatus = status;
       }
 
       if (user) {

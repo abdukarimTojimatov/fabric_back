@@ -143,13 +143,31 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit, page, search } = req.body;
+      const { limit, page, search, product, dateFrom, dateTo } = req.body;
       let query = {};
       if (search) {
         query["name"] = { $regex: new RegExp(search, "i") };
       }
 
+      if (product) {
+        query.product = product;
+      }
       let productionOrder;
+
+      const parseDate = (dateString) => {
+        const [year, month, day] = dateString.split(":").map(Number);
+        return new Date(Date.UTC(year, month - 1, day));
+      };
+      if (dateFrom && dateTo) {
+        const fromDate = parseDate(dateFrom);
+        const toDate = parseDate(dateTo);
+        query.createdAt = { $gte: fromDate, $lte: toDate };
+      } else if (dateFrom) {
+        const date = parseDate(dateFrom);
+        const nextDate = new Date(date);
+        nextDate.setUTCDate(date.getUTCDate() + 1);
+        query.createdAt = { $gte: date, $lt: nextDate };
+      }
 
       if (!limit || !page) {
         productionOrder = await ProductionOrder.find(query)

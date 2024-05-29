@@ -25,11 +25,11 @@ const readSchema = Joi.object({
 });
 
 const findAll = Joi.object({
+  customer: Joi.string().optional(),
+  user: Joi.string().optional(),
   limit: Joi.number().integer().optional(),
   page: Joi.number().integer().optional(),
-  paymentStatus: Joi.string()
-    .valid("unpaid", "paid", "partially-paid")
-    .optional(),
+  status: Joi.string().valid("unpaid", "paid", "partially-paid").optional(),
 });
 
 module.exports = {
