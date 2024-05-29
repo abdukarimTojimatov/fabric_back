@@ -73,15 +73,19 @@ module.exports = {
         query["username"] = { $regex: new RegExp(search, "i") };
       }
 
-      const options = {
-        limit: parseInt(limit) || 10,
-        page: parseInt(page) || 1,
-      };
+      let users;
+      if (!req.body.page || !req.body.limit) {
+        users = await User.find(query).exec();
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+        };
 
-      const users = await User.paginate(query, options);
+        users = await User.paginate(query, options);
+      }
 
-      if (!users) throw new Error();
-      return res.status(200).json(users);
+      res.status(200).json(users);
     } catch (err) {
       console.log(err);
       return next(new ErrorHandler(400, "Failed to find users " + err));
