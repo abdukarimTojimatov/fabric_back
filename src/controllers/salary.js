@@ -112,13 +112,25 @@ module.exports = {
       }
       let salaries;
       if (!limit || !page) {
-        salaries = await Salary.find(query).exec();
+        salaries = await Salary.find(query)
+          .populate({
+            path: "users.user",
+            select: ["profile.firstName", "profile.lastName"],
+            model: "User",
+            strictPopulate: false,
+          })
+          .exec();
       } else {
         const options = {
           limit: parseInt(limit),
           page: parseInt(page),
         };
         salaries = await Salary.paginate(query, options);
+        await User.populate(salaries.docs, {
+          path: "users.user",
+          select: ["profile.firstName", "profile.lastName"],
+          strictPopulate: false,
+        });
       }
 
       res.status(200).json(salaries);
