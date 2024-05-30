@@ -3,8 +3,8 @@ const SalesOrderItem = require("../models/salesOrderItem");
 const Product = require("../models/product");
 const StockProduct = require("../models/stockProduct");
 const Payment = require("../models/payment");
+const Customer = require("../models/customer");
 const { ErrorHandler } = require("../util/error");
-const supplier = require("./supplier");
 
 module.exports = {
   addNew: async function (req, res, next) {
@@ -125,6 +125,13 @@ module.exports = {
         }
 
         await salesOrder.save();
+
+        const customerObj = await Customer.findById(customer);
+        if (!customerObj) {
+          throw new Error(`Customer with ID ${customer} not found`);
+        }
+        customerObj.customerDebt += salesOrder.totalDebt;
+        await customerObj.save();
       }
 
       res
@@ -204,6 +211,13 @@ module.exports = {
       }
 
       await order.save();
+
+      const customerObj = await Customer.findById(order.customer);
+      if (!customerObj) {
+        throw new Error(`Customer with ID ${order.customer} not found`);
+      }
+      customerObj.customerDebt -= totalAmountToPay;
+      await customerObj.save();
 
       res.status(200).json({ message: "Payment updated successfully", order });
     } catch (error) {

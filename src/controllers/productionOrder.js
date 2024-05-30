@@ -1,6 +1,8 @@
 const ProductionOrder = require("../models/productionOrder");
 const { ErrorHandler } = require("../util/error");
 const Product = require("../models/product");
+const mongoose = require("mongoose");
+
 const StockRawMaterial = require("../models/stockRawMaterial");
 const StockProduct = require("../models/stockProduct");
 module.exports = {
@@ -185,6 +187,20 @@ module.exports = {
           })
           .exec();
       } else {
+        if (product) {
+          query.product = new mongoose.Types.ObjectId(query.product);
+        }
+
+        const totalQuantityResult = await ProductionOrder.aggregate([
+          { $match: query },
+          { $group: { _id: null, totalQuantitySum: { $sum: "$quantity" } } },
+        ]);
+
+        const totalQuantitySum =
+          totalQuantityResult.length > 0
+            ? totalQuantityResult[0].totalQuantitySum
+            : 0;
+
         const options = {
           limit: parseInt(limit),
           page: parseInt(page),
@@ -205,6 +221,8 @@ module.exports = {
         };
 
         productionOrder = await ProductionOrder.paginate(query, options);
+
+        productionOrder.totalQuantitySum = totalQuantitySum;
       }
 
       res.status(200).json(productionOrder);

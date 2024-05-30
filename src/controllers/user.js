@@ -67,10 +67,10 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit, page, search } = req.body;
+      const { limit, page, userSalaryType } = req.body;
       let query = {};
-      if (search) {
-        query["username"] = { $regex: new RegExp(search, "i") };
+      if (userSalaryType) {
+        query.userSalaryType = userSalaryType;
       }
 
       let users;

@@ -2,7 +2,8 @@ const StockPurchase = require("../models/stockPurchase");
 const RawMaterial = require("../models/rawMaterial");
 const { ErrorHandler } = require("../util/error");
 const StockRawMaterial = require("../models/stockRawMaterial");
-const moment = require("moment");
+const mongoose = require("mongoose");
+
 module.exports = {
   addNew: async function (req, res, next) {
     try {
@@ -144,7 +145,9 @@ module.exports = {
         const toDate = parseDate(dateTo);
         query.createdAt = { $gte: fromDate, $lte: toDate };
       } else if (dateFrom) {
+        console.log("dateFrom", dateFrom);
         const date = parseDate(dateFrom);
+        console.log("date", date);
         const nextDate = new Date(date);
         nextDate.setUTCDate(date.getUTCDate() + 1);
         query.createdAt = { $gte: date, $lt: nextDate };
@@ -172,13 +175,33 @@ module.exports = {
           })
           .exec();
       } else {
-        // Paginate and then populate
         const options = {
           limit: parseInt(limit),
           page: parseInt(page),
         };
+        if (rawMaterial) {
+          query.rawMaterial = new mongoose.Types.ObjectId(query.rawMaterial);
+        }
 
-        // Use pagination and then manually populate
+        if (supplier) {
+          query.supplier = new mongoose.Types.ObjectId(query.supplier);
+        }
+
+        const totalQuantityResult = await StockPurchase.aggregate([
+          { $match: query },
+          {
+            $group: {
+              _id: null,
+              totalQuantitySum: { $sum: "$quantityPurchased" },
+            },
+          },
+        ]);
+
+        const totalQuantitySum =
+          totalQuantityResult.length > 0
+            ? totalQuantityResult[0].totalQuantitySum
+            : 0;
+        console.log("totalQuantityResult", totalQuantityResult);
         const paginatedResults = await StockPurchase.paginate(query, options);
         const populatedDocs = await StockPurchase.populate(
           paginatedResults.docs,
@@ -204,9 +227,9 @@ module.exports = {
           ]
         );
 
-        // Include pagination metadata in the response
-        paginatedResults.docs = populatedDocs; // Replace docs with populated docs
+        paginatedResults.docs = populatedDocs;
         purchases = paginatedResults;
+        purchases.totalQuantitySum = totalQuantitySum;
       }
 
       return res.status(200).json(purchases);

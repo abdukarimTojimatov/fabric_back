@@ -7,6 +7,7 @@ module.exports = {
       const newStock = new StockRawMaterial(req.body);
       const doc = await newStock.save();
       res.status(201).json(doc);
+      ß;
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to add new stock", err.message));
@@ -86,13 +87,11 @@ module.exports = {
           })
           .exec();
       } else {
-        // Paginate and then populate
         const options = {
           limit: parseInt(limit),
           page: parseInt(page),
         };
 
-        // Use pagination and then manually populate
         const paginatedResults = await StockRawMaterial.paginate(
           query,
           options
@@ -104,8 +103,7 @@ module.exports = {
           strictPopulate: false,
         });
 
-        // Include pagination metadata in the response
-        paginatedResults.docs = stocks; // Replace docs with populated docs
+        paginatedResults.docs = stocks;
         stocks = paginatedResults;
       }
 

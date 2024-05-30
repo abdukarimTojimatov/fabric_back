@@ -21,8 +21,9 @@ const customerSchema = new mongoose.Schema(
       required: false,
     },
     customerDebt: {
-      type: String,
+      type: Number,
       required: false,
+      default: 0,
     },
     startedDate: {
       type: Date,

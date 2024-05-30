@@ -6,10 +6,13 @@ module.exports = {
   addNew: async function (req, res, next) {
     try {
       const { ingredients } = req.body;
+
       let totalCost = 0;
 
       for (const ingredient of ingredients) {
+        //
         const rawMaterial = await RawMaterial.findById(ingredient.rawMaterial);
+
         totalCost += rawMaterial.rawMaterialPrice * ingredient.quantityRequired;
       }
 
@@ -17,6 +20,7 @@ module.exports = {
 
       const newProduct = new Product(req.body);
       const doc = await newProduct.save();
+
       res.status(201).json(doc);
     } catch (err) {
       console.error(err);
@@ -82,13 +86,17 @@ module.exports = {
   findAll: async function (req, res, next) {
     try {
       const { limit, page, search } = req.body;
+
       let query = {};
+
       if (search) {
         query["name"] = { $regex: new RegExp(search, "i") };
       }
 
       let products;
+
       if (!req.body.page || !req.body.limit) {
+        //
         products = await Product.find(query)
           .populate({
             path: "ingredients.rawMaterial",
@@ -96,6 +104,7 @@ module.exports = {
           })
           .exec();
       } else {
+        //
         const options = {
           limit: parseInt(limit),
           page: parseInt(page),

@@ -60,7 +60,7 @@ const readSchema = Joi.object({
 const findAll = Joi.object({
   limit: Joi.number().integer().optional(),
   page: Joi.number().integer().optional(),
-  employmentStatus: Joi.string().valid("active", "left", "paused").optional(),
+  userSalaryType: Joi.string().valid("daily").optional(),
   search: Joi.string().optional(),
   startDate: Joi.date().optional(),
   endDate: Joi.date().optional(),

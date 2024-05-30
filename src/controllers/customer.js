@@ -12,7 +12,7 @@ module.exports = {
           .json({ message: "customer with this phone number already exists." });
       }
       req.body.startedDate = new Date();
-      console.log(req.body);
+
       const newCustomerr = new Customer(req.body);
       const doc = await newCustomerr.save();
 
@@ -86,6 +86,7 @@ module.exports = {
   findAll: async function (req, res, next) {
     try {
       const { limit = 10, page = 1, search } = req.body;
+
       let query = {};
 
       if (search) {
@@ -100,7 +101,21 @@ module.exports = {
           limit: parseInt(limit),
           page: parseInt(page),
         };
+
+        const totalQuantityResult = await Customer.aggregate([
+          { $match: query },
+          {
+            $group: { _id: null, totalQuantitySum: { $sum: "$customerDebt" } },
+          },
+        ]);
+
+        const totalQuantitySum =
+          totalQuantityResult.length > 0
+            ? totalQuantityResult[0].totalQuantitySum
+            : 0;
+
         customers = await Customer.paginate(query, options);
+        customers.totalQuantitySum = totalQuantitySum;
       }
 
       if (!customers) throw new Error("Customers not found");

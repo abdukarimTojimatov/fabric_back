@@ -5,6 +5,7 @@ const createSchema = Joi.object({
   phone: Joi.number().required(),
   address: Joi.string().optional(),
   notes: Joi.string().optional(),
+  customerDebt: Joi.number().optional(),
 });
 
 const updateSchema = Joi.object({
