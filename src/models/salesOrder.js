@@ -3,7 +3,11 @@ const mongoosePaginate = require("mongoose-paginate-v2");
 
 const salesOrderSchema = new mongoose.Schema(
   {
-    customer: { type: String, required: true },
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+      required: true,
+    },
     shippingAddress: { type: String, required: false },
     orderNotes: { type: String, required: false },
     autoNumber: { type: String, required: false, unique: true },

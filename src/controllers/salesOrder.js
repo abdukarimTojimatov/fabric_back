@@ -5,7 +5,7 @@ const StockProduct = require("../models/stockProduct");
 const Payment = require("../models/payment");
 const Customer = require("../models/customer");
 const { ErrorHandler } = require("../util/error");
-
+const mongoose = require("mongoose");
 module.exports = {
   addNew: async function (req, res, next) {
     try {
@@ -310,20 +310,18 @@ module.exports = {
       }
       let salesOrders;
 
-      const parseDate = (dateString) => {
-        const [year, month, day] = dateString.split(":").map(Number);
-        return new Date(Date.UTC(year, month - 1, day));
-      };
+      function parseDate(dateString, endOfDay = false) {
+        const [year, month, day] = dateString.split(":");
+        if (endOfDay) {
+          return new Date(`${year}-${month}-${day}T23:59:59.999Z`);
+        }
+        return new Date(`${year}-${month}-${day}T00:00:00Z`);
+      }
 
       if (dateFrom && dateTo) {
         const fromDate = parseDate(dateFrom);
-        const toDate = parseDate(dateTo);
+        const toDate = parseDate(dateTo, true);
         query.createdAt = { $gte: fromDate, $lte: toDate };
-      } else if (dateFrom) {
-        const date = parseDate(dateFrom);
-        const nextDate = new Date(date);
-        nextDate.setUTCDate(date.getUTCDate() + 1);
-        query.createdAt = { $gte: date, $lt: nextDate };
       }
       if (!page || !limit) {
         salesOrders = await SalesOrder.find(query)
@@ -338,80 +336,70 @@ module.exports = {
             model: "User",
           });
       } else {
-        const options = {
-          limit: parseInt(limit),
-          page: parseInt(page),
-          populate: [
-            {
-              path: "customer",
-              select: "name",
-              model: "Customer",
+        if (customer) {
+          query.customer = new mongoose.Types.ObjectId(customer);
+        }
+        if (user) {
+          query.user = new mongoose.Types.ObjectId(user);
+        }
+
+        const totalQuantityResult = await SalesOrder.aggregate([
+          { $match: query },
+          {
+            $lookup: {
+              from: "payments", // The collection name for payments
+              localField: "_id",
+              foreignField: "salesOrderId",
+              as: "payments",
             },
-            {
-              path: "user",
-              select: "username",
-              model: "User",
+          },
+          {
+            $unwind: {
+              path: "$payments",
+              preserveNullAndEmptyArrays: true,
             },
-          ],
-        };
-
-        salesOrders = await SalesOrder.paginate(query, options);
-      }
-
-      res.status(200).json(salesOrders);
-    } catch (err) {
-      console.error(err);
-      next(new ErrorHandler(400, "Failed to find orders", err.message));
-    }
-  },
-
-  reportDaily: async function (req, res, next) {
-    try {
-      const { limit, page, search, customer, dateFrom, dateTo, user } =
-        req.body;
-      let query = {};
-
-      if (search) {
-        query["name"] = { $regex: new RegExp(search, "i") };
-      }
-
-      if (customer) {
-        query.customer = customer;
-      }
-
-      if (user) {
-        query.user = user;
-      }
-      let salesOrders;
-
-      const parseDate = (dateString) => {
-        const [year, month, day] = dateString.split(":").map(Number);
-        return new Date(Date.UTC(year, month - 1, day));
-      };
-
-      if (dateFrom && dateTo) {
-        const fromDate = parseDate(dateFrom);
-        const toDate = parseDate(dateTo);
-        query.createdAt = { $gte: fromDate, $lte: toDate };
-      } else if (dateFrom) {
-        const date = parseDate(dateFrom);
-        const nextDate = new Date(date);
-        nextDate.setUTCDate(date.getUTCDate() + 1);
-        query.createdAt = { $gte: date, $lt: nextDate };
-      }
-      if (!page || !limit) {
-        salesOrders = await SalesOrder.find(query)
-          .populate({
-            path: "customer",
-            select: "name",
-            model: "Customer",
-          })
-          .populate({
-            path: "user",
-            select: "username",
-            model: "User",
-          });
-      } else {
+          },
+          {
+            $group: {
+              _id: null,
+              total_amount: { $sum: "$total_amount" },
+              total_origin_amount: { $sum: "$total_origin_amount" },
+              total_income_amount: { $sum: "$total_income_amount" },
+              totalCash: {
+                $sum: {
+                  $cond: [
+                    { $eq: ["$payments.method", "cash"] },
+                    "$payments.amount",
+                    0,
+                  ],
+                },
+              },
+              totalCard: {
+                $sum: {
+                  $cond: [
+                    { $eq: ["$payments.method", "card"] },
+                    "$payments.amount",
+                    0,
+                  ],
+                },
+              },
+              totalTransfer: {
+                $sum: {
+                  $cond: [
+                    { $eq: ["$payments.method", "transfer"] },
+                    "$payments.amount",
+                    0,
+                  ],
+                },
+              },
+            },
+          },
+        ]);
+        console.log("totalQuantityResult", totalQuantityResult);
+        const totalQuantitySum =
+          totalQuantityResult.length > 0
+            ? totalQuantityResult[0].totalQuantitySum
+            : 0;
         const options = {
           limit: parseInt(limit),
           page: parseInt(page),

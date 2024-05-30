@@ -126,10 +126,13 @@ module.exports = {
       const { limit, page, rawMaterial, supplier, dateFrom, dateTo } = req.body;
 
       let purchases;
-      const parseDate = (dateString) => {
-        const [year, month, day] = dateString.split(":").map(Number);
-        return new Date(Date.UTC(year, month - 1, day));
-      };
+      function parseDate(dateString, endOfDay = false) {
+        const [year, month, day] = dateString.split(":");
+        if (endOfDay) {
+          return new Date(`${year}-${month}-${day}T23:59:59.999Z`);
+        }
+        return new Date(`${year}-${month}-${day}T00:00:00Z`);
+      }
       let query = {};
 
       if (rawMaterial) {
@@ -142,15 +145,8 @@ module.exports = {
 
       if (dateFrom && dateTo) {
         const fromDate = parseDate(dateFrom);
-        const toDate = parseDate(dateTo);
+        const toDate = parseDate(dateTo, true);
         query.createdAt = { $gte: fromDate, $lte: toDate };
-      } else if (dateFrom) {
-        console.log("dateFrom", dateFrom);
-        const date = parseDate(dateFrom);
-        console.log("date", date);
-        const nextDate = new Date(date);
-        nextDate.setUTCDate(date.getUTCDate() + 1);
-        query.createdAt = { $gte: date, $lt: nextDate };
       }
 
       if (!req.body.page || !req.body.limit) {
