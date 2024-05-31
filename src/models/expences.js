@@ -1,6 +1,8 @@
 const { required } = require("joi");
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
+const moment = require("moment-timezone");
+const currentTime = moment().tz("Asia/Tashkent").toDate();
 const expenseSchema = new mongoose.Schema(
   {
     category: {

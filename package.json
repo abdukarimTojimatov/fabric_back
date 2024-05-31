@@ -26,6 +26,7 @@
     "joi": "^17.12.2",
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",
+    "moment-timezone": "^0.5.45",
     "mongoose": "^8.2.2",
     "mongoose-aggregate-paginate-v2": "^1.0.7",
     "mongoose-paginate-v2": "^1.8.0",

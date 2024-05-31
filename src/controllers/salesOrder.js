@@ -347,16 +347,71 @@ module.exports = {
           { $match: query },
           {
             $lookup: {
-              from: "payments", // The collection name for payments
+              from: "payments",
               localField: "_id",
               foreignField: "salesOrderId",
               as: "payments",
             },
           },
           {
-            $unwind: {
-              path: "$payments",
-              preserveNullAndEmptyArrays: true,
+            $group: {
+              _id: "$_id",
+              total_amount: { $first: "$total_amount" },
+              total_origin_amount: { $first: "$total_origin_amount" },
+              total_income_amount: { $first: "$total_income_amount" },
+              totalDebt: { $first: "$totalDebt" },
+              totalPaid: { $first: "$totalPaid" },
+              totalCash: {
+                $sum: {
+                  $sum: {
+                    $map: {
+                      input: {
+                        $filter: {
+                          input: "$payments",
+                          as: "payment",
+                          cond: { $eq: ["$$payment.method", "cash"] },
+                        },
+                      },
+                      as: "payment",
+                      in: "$$payment.amount",
+                    },
+                  },
+                },
+              },
+              totalCard: {
+                $sum: {
+                  $sum: {
+                    $map: {
+                      input: {
+                        $filter: {
+                          input: "$payments",
+                          as: "payment",
+                          cond: { $eq: ["$$payment.method", "card"] },
+                        },
+                      },
+                      as: "payment",
+                      in: "$$payment.amount",
+                    },
+                  },
+                },
+              },
+              totalTransfer: {
+                $sum: {
+                  $sum: {
+                    $map: {
+                      input: {
+                        $filter: {
+                          input: "$payments",
+                          as: "payment",
+                          cond: { $eq: ["$$payment.method", "transfer"] },
+                        },
+                      },
+                      as: "payment",
+                      in: "$$payment.amount",
+                    },
+                  },
+                },
+              },
             },
           },
           {
@@ -365,41 +420,15 @@ module.exports = {
               total_amount: { $sum: "$total_amount" },
               total_origin_amount: { $sum: "$total_origin_amount" },
               total_income_amount: { $sum: "$total_income_amount" },
-              totalCash: {
-                $sum: {
-                  $cond: [
-                    { $eq: ["$payments.method", "cash"] },
-                    "$payments.amount",
-                    0,
-                  ],
-                },
-              },
-              totalCard: {
-                $sum: {
-                  $cond: [
-                    { $eq: ["$payments.method", "card"] },
-                    "$payments.amount",
-                    0,
-                  ],
-                },
-              },
-              totalTransfer: {
-                $sum: {
-                  $cond: [
-                    { $eq: ["$payments.method", "transfer"] },
-                    "$payments.amount",
-                    0,
-                  ],
-                },
-              },
+              totalDebt: { $sum: "$totalDebt" },
+              totalPaid: { $sum: "$totalPaid" },
+              totalCash: { $sum: "$totalCash" },
+              totalCard: { $sum: "$totalCard" },
+              totalTransfer: { $sum: "$totalTransfer" },
             },
           },
         ]);
-        console.log("totalQuantityResult", totalQuantityResult);
-        const totalQuantitySum =
-          totalQuantityResult.length > 0
-            ? totalQuantityResult[0].totalQuantitySum
-            : 0;
+        console.log(totalQuantityResult);
         const options = {
           limit: parseInt(limit),
           page: parseInt(page),
@@ -418,6 +447,19 @@ module.exports = {
         };
 
         salesOrders = await SalesOrder.paginate(query, options);
+
+        if (totalQuantityResult.length > 0) {
+          salesOrders.totalAmount = totalQuantityResult[0].total_amount;
+          salesOrders.totalOriginAmount =
+            totalQuantityResult[0].total_origin_amount;
+          salesOrders.totalIncomeAmount =
+            totalQuantityResult[0].total_income_amount;
+          salesOrders.totalDebt = totalQuantityResult[0].totalDebt;
+          salesOrders.totalPaid = totalQuantityResult[0].totalPaid;
+          salesOrders.totalCash = totalQuantityResult[0].totalCash;
+          salesOrders.totalCard = totalQuantityResult[0].totalCard;
+          salesOrders.totalTransfer = totalQuantityResult[0].totalTransfer;
+        }
       }
 
       res.status(200).json(salesOrders);

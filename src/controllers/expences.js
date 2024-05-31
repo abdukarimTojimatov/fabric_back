@@ -64,7 +64,7 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit, page, search } = req.body;
+      const { limit, page, search, category, dateFrom, dateTo } = req.body;
       let query = {};
       if (search) {
         query["description"] = { $regex: new RegExp(search, "i") };

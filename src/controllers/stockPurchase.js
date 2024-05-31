@@ -197,7 +197,7 @@ module.exports = {
           totalQuantityResult.length > 0
             ? totalQuantityResult[0].totalQuantitySum
             : 0;
-        console.log("totalQuantityResult", totalQuantityResult);
+
         const paginatedResults = await StockPurchase.paginate(query, options);
         const populatedDocs = await StockPurchase.populate(
           paginatedResults.docs,
