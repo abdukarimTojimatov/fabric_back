@@ -1,5 +1,6 @@
 const Expences = require("../models/expences");
 const { ErrorHandler } = require("../util/error");
+const mongoose = require("mongoose");
 
 module.exports = {
   addNew: async function (req, res, next) {
@@ -70,6 +71,21 @@ module.exports = {
         query["description"] = { $regex: new RegExp(search, "i") };
       }
       let expences;
+
+      function parseDate(dateString, endOfDay = false) {
+        const [year, month, day] = dateString.split(":");
+        if (endOfDay) {
+          return new Date(`${year}-${month}-${day}T23:59:59.999Z`);
+        }
+        return new Date(`${year}-${month}-${day}T00:00:00Z`);
+      }
+
+      if (dateFrom && dateTo) {
+        const fromDate = parseDate(dateFrom);
+        const toDate = parseDate(dateTo, true);
+        query.createdAt = { $gte: fromDate, $lte: toDate };
+      }
+
       if (!limit || !page) {
         expences = await Expences.find(query)
           .populate({
@@ -80,6 +96,24 @@ module.exports = {
           })
           .exec();
       } else {
+        if (category) {
+          query.category = new mongoose.Types.ObjectId(category);
+        }
+
+        const totalQuantityResult = await Expences.aggregate([
+          { $match: query },
+          {
+            $group: {
+              _id: null,
+              totalQuantitySum: { $sum: "$amount" },
+            },
+          },
+        ]);
+
+        const totalQuantitySum =
+          totalQuantityResult.length > 0
+            ? totalQuantityResult[0].totalQuantitySum
+            : 0;
         const options = {
           limit: parseInt(limit),
           page: parseInt(page),
@@ -95,6 +129,7 @@ module.exports = {
 
         paginatedResult.docs = expences;
         expences = paginatedResult;
+        expences.totalQuantitySum = totalQuantitySum;
       }
 
       res.status(200).json(expences);
