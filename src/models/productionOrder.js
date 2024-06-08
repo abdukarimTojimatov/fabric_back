@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
-
+const moment = require("moment");
 const productionOrder = new mongoose.Schema(
   {
     //
@@ -63,6 +63,10 @@ const productionOrder = new mongoose.Schema(
     },
     completionDate: {
       type: Date,
+    },
+    date: {
+      type: String,
+      default: moment().format("YYYY-MM-DD-HH:mm"),
     },
   },
   { timestamps: true, versionKey: false }

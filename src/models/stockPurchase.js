@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
+const moment = require("moment");
 const stockPurchaseSchema = new mongoose.Schema(
   {
     rawMaterial: {
@@ -32,9 +33,9 @@ const stockPurchaseSchema = new mongoose.Schema(
         "tonna",
       ],
     },
-    purchaseDate: {
+    date: {
       type: String,
-      default: true,
+      default: moment().format("YYYY-MM-DD-HH:mm"),
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,

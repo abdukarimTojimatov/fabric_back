@@ -1,4 +1,4 @@
-const { required } = require("joi");
+const moment = require("moment");
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
 const expenseSchema = new mongoose.Schema(
@@ -19,7 +19,12 @@ const expenseSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    date: {
+      type: String,
+      default: moment().format("YYYY-MM-DD-HH:mm"),
+    },
   },
+
   { timestamps: true, versionKey: false }
 );
 expenseSchema.plugin(mongoosePaginate);

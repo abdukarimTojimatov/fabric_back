@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
-
+const moment = require("moment");
 const customerSchema = new mongoose.Schema(
   {
     name: {
@@ -25,10 +25,15 @@ const customerSchema = new mongoose.Schema(
       required: false,
       default: 0,
     },
+    customerMoney: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
     startedDate: {
-      type: Date,
+      type: String,
       required: true,
-      default: Date.now(),
+      default: moment().format("YYYY-MM-DD-HH:mm"),
     },
     finishedDate: {
       type: Date,

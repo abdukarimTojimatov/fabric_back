@@ -9,27 +9,14 @@ const mongoose = require("mongoose");
 module.exports = {
   addNew: async function (req, res, next) {
     try {
-      const {
-        customer,
-        payments,
-        customerType,
-        shippingAddress,
-        orderNotes,
-        autoNumber,
-        tax,
-        status,
-        items,
-      } = req.body;
+      const { customer, payments, shippingAddress, orderNotes, items } =
+        req.body;
       const user = req.user._id;
 
       const salesOrder = new SalesOrder({
         customer,
-        customerType,
         shippingAddress,
         orderNotes,
-        autoNumber,
-        tax,
-        status,
         user,
       });
 
@@ -91,19 +78,39 @@ module.exports = {
       salesOrder.total_amount = totalSalesOrderAmount;
       salesOrder.total_origin_amount = totalSalesOrderOriginAmount;
       salesOrder.total_income_amount = totalSalesOrderIncomeAmount;
-      salesOrder.totalDebt = totalSalesOrderAmount;
+
+      let remainingDebt = totalSalesOrderAmount;
+      let amountFromCustomerMoney = 0;
+      const customerObj = await Customer.findById(customer);
+
+      if (!customerObj) {
+        throw new Error(`Customer with ID ${customer} not found`);
+      }
+
+      if (customerObj.customerMoney > 0) {
+        const amountToApply = Math.min(
+          customerObj.customerMoney,
+          remainingDebt
+        );
+        remainingDebt -= amountToApply;
+        customerObj.customerMoney -= amountToApply;
+        amountFromCustomerMoney = amountToApply;
+      }
+
+      salesOrder.totalDebt = remainingDebt;
       salesOrder.totalPaid = 0;
       salesOrder.paymentStatus = "unpaid";
+      salesOrder.amountFromCustomerMoney = amountFromCustomerMoney;
 
       await salesOrder.save();
 
-      // Create initial payment entries if any payments are provided
       if (payments && payments.length > 0) {
         const paymentPromises = payments.map(async (payment) => {
           const newPayment = new Payment({
             salesOrderId: salesOrder._id,
             amount: payment.amount,
             method: payment.method,
+            customer: salesOrder.customer,
           });
           await newPayment.save();
           return newPayment;
@@ -126,17 +133,14 @@ module.exports = {
 
         await salesOrder.save();
 
-        const customerObj = await Customer.findById(customer);
-        if (!customerObj) {
-          throw new Error(`Customer with ID ${customer} not found`);
-        }
         customerObj.customerDebt += salesOrder.totalDebt;
+        await customerObj.save();
+      } else {
+        customerObj.customerDebt += remainingDebt;
         await customerObj.save();
       }
 
-      res
-        .status(201)
-        .json({ message: "Sales order created successfully", salesOrder });
+      res.status(201).json({ salesOrder });
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to add new order", err.message));

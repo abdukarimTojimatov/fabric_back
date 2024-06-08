@@ -1,15 +1,19 @@
 const Joi = require("joi");
 
 const createSchema = Joi.object({
+  customer: Joi.string().required(),
   amount: Joi.number().required().min(0),
-  method: Joi.string().valid("cash", "card", "transfer").required(),
-  customer: Joi.string().optional(),
+  dueDate: Joi.date().required(),
+  status: Joi.string().valid("pending", "paid", "late").default("pending"),
+  paymentDate: Joi.date().optional(),
 });
 
 const updateSchema = Joi.object({
-  amount: Joi.number().required().min(0),
-  method: Joi.string().valid("cash", "card", "transfer").required(),
   customer: Joi.string().optional(),
+  amount: Joi.number().optional().min(0),
+  dueDate: Joi.date().optional(),
+  status: Joi.string().valid("pending", "paid", "late").optional(),
+  paymentDate: Joi.date().optional(),
 });
 
 const deleteSchema = Joi.object({

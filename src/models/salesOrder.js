@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
+const moment = require("moment");
 
 const salesOrderSchema = new mongoose.Schema(
   {
@@ -16,12 +17,17 @@ const salesOrderSchema = new mongoose.Schema(
     total_amount: { type: Number, required: true },
     total_origin_amount: { type: Number, required: true },
     total_income_amount: { type: Number, required: true },
+    amountFromCustomerMoney: { type: Number, default: 0 }, // New field
     totalDebt: { type: Number, default: 0 },
     totalPaid: { type: Number, default: 0 },
     paymentStatus: {
       type: String,
       enum: ["unpaid", "partially-paid", "paid"],
       default: "unpaid",
+    },
+    date: {
+      type: String,
+      default: moment().format("YYYY-MM-DD-HH:mm"),
     },
   },
   { timestamps: true, versionKey: false }

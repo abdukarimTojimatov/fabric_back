@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const mongoosePaginate = require("mongoose-paginate-v2");
+const moment = require("moment");
 const userSchema = new Schema({
   user: {
     type: Schema.Types.ObjectId,
@@ -39,6 +40,10 @@ const salarySchema = new Schema(
       required: false,
     },
     users: [userSchema],
+    date: {
+      type: String,
+      default: moment().format("YYYY-MM-DD-HH:mm"),
+    },
   },
   { timestamps: true, versionKey: false }
 );

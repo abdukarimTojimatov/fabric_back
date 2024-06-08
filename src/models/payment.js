@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
-
+const moment = require("moment");
 const paymentSchema = new mongoose.Schema(
   {
     salesOrderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "SalesOrder",
-      required: true,
+      required: false,
     },
     amount: {
       type: Number,
@@ -18,8 +18,13 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
     date: {
-      type: Date,
-      default: Date.now,
+      type: String,
+      default: moment().format("YYYY-MM-DD-HH:mm"),
+    },
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+      required: false,
     },
   },
   { timestamps: true, versionKey: false }

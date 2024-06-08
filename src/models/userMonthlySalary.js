@@ -1,7 +1,7 @@
 // models/UserMonthlySalary.js
 
 const mongoose = require("mongoose");
-
+const moment = require("moment");
 const attendanceSchema = new mongoose.Schema({
   date: {
     type: Date,
@@ -40,6 +40,10 @@ const userMonthlySalarySchema = new mongoose.Schema({
     required: true,
   },
   attendance: [attendanceSchema],
+  date: {
+    type: String,
+    default: moment().format("YYYY-MM-DD-HH:mm"),
+  },
 });
 
 const UserMonthlySalary = mongoose.model(
