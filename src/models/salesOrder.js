@@ -12,12 +12,16 @@ const salesOrderSchema = new mongoose.Schema(
     shippingAddress: { type: String, required: false },
     orderNotes: { type: String, required: false },
     autoNumber: { type: String, required: false, unique: true },
-    tax: { type: Number, required: false },
+    marketType: {
+      type: String,
+      required: false,
+      enum: ["export", "local"],
+    },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     total_amount: { type: Number, required: true },
     total_origin_amount: { type: Number, required: true },
     total_income_amount: { type: Number, required: true },
-    amountFromCustomerMoney: { type: Number, default: 0 }, // New field
+    amountFromCustomerMoney: { type: Number, default: 0 },
     totalDebt: { type: Number, default: 0 },
     totalPaid: { type: Number, default: 0 },
     paymentStatus: {

@@ -23,7 +23,7 @@ module.exports = {
       const itemPromises = items.map(async (item) => {
         const product = await Product.findById(item.product);
         if (!product) {
-          throw new Error(`Product with ID ${item.product} not found`);
+          throw new Error(`Bizda bunday ${product.name} mahsulot mavjud emas `);
         }
 
         const total_amount = item.quantity * product.product_sellingPrice;
@@ -35,15 +35,16 @@ module.exports = {
         });
         if (!stockProduct) {
           throw new Error(
-            `Stock for product with ID ${item.product} not found`
+            `Ushbu ${product.name} mahsulotdan omborda mavjud emas `
           );
         }
 
         if (stockProduct.quantityInStock < item.quantity) {
           throw new Error(
-            `Not enough quantity in stock for product with ID ${item.product}`
+            `Ushbu ${product.name} mahsulotdan omborda yetarli emas `
           );
         }
+
         stockProduct.quantityInStock -= item.quantity;
         await stockProduct.save();
 
@@ -84,26 +85,11 @@ module.exports = {
       const customerObj = await Customer.findById(customer);
 
       if (!customerObj) {
-        throw new Error(`Customer with ID ${customer} not found`);
+        throw new Error(` Bizda bunday ${customer.name} mijoz mavjud emas `);
       }
 
-      if (customerObj.customerMoney > 0) {
-        const amountToApply = Math.min(
-          customerObj.customerMoney,
-          remainingDebt
-        );
-        remainingDebt -= amountToApply;
-        customerObj.customerMoney -= amountToApply;
-        amountFromCustomerMoney = amountToApply;
-      }
-
-      salesOrder.totalDebt = remainingDebt;
-      salesOrder.totalPaid = 0;
-      salesOrder.paymentStatus = "unpaid";
-      salesOrder.amountFromCustomerMoney = amountFromCustomerMoney;
-
-      await salesOrder.save();
-
+      // Apply payments first
+      let totalPaid = 0;
       if (payments && payments.length > 0) {
         const paymentPromises = payments.map(async (payment) => {
           const newPayment = new Payment({
@@ -118,27 +104,49 @@ module.exports = {
 
         const savedPayments = await Promise.all(paymentPromises);
 
-        const totalPaid = savedPayments.reduce(
+        totalPaid = savedPayments.reduce(
           (sum, payment) => sum + payment.amount,
           0
         );
-        salesOrder.totalPaid = totalPaid;
-        salesOrder.totalDebt = totalSalesOrderAmount - totalPaid;
-
-        if (salesOrder.totalDebt === 0) {
-          salesOrder.paymentStatus = "paid";
-        } else if (salesOrder.totalPaid > 0) {
-          salesOrder.paymentStatus = "partially-paid";
+        if (totalPaid > totalSalesOrderAmount) {
+          throw new Error(
+            ` Siz ${
+              totalPaid - totalSalesOrderAmount
+            } so'm keragidan ortiq mablag' to'lamoqdasiz, `
+          );
         }
 
-        await salesOrder.save();
-
-        customerObj.customerDebt += salesOrder.totalDebt;
-        await customerObj.save();
-      } else {
-        customerObj.customerDebt += remainingDebt;
-        await customerObj.save();
+        remainingDebt -= totalPaid;
       }
+
+      // Use customerMoney to cover remaining debt
+      if (remainingDebt > 0 && customerObj.customerMoney > 0) {
+        const amountToApply = Math.min(
+          customerObj.customerMoney,
+          remainingDebt
+        );
+        remainingDebt -= amountToApply;
+        customerObj.customerMoney -= amountToApply;
+        amountFromCustomerMoney = amountToApply;
+      }
+
+      salesOrder.totalDebt = remainingDebt;
+      salesOrder.totalPaid = totalPaid + amountFromCustomerMoney;
+      salesOrder.amountFromCustomerMoney = amountFromCustomerMoney;
+
+      if (salesOrder.totalDebt === 0) {
+        salesOrder.paymentStatus = "paid";
+      } else if (salesOrder.totalPaid > 0) {
+        salesOrder.paymentStatus = "partially-paid";
+      } else if (salesOrder.totalPaid === 0) {
+        salesOrder.paymentStatus = "unpaid";
+      }
+
+      await salesOrder.save();
+
+      // Update customer's debt
+      customerObj.customerDebt += remainingDebt;
+      await customerObj.save();
 
       res.status(201).json({ salesOrder });
     } catch (err) {

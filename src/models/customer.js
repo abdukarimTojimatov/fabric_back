@@ -30,9 +30,8 @@ const customerSchema = new mongoose.Schema(
       required: false,
       default: 0,
     },
-    startedDate: {
+    date: {
       type: String,
-      required: true,
       default: moment().format("YYYY-MM-DD-HH:mm"),
     },
     finishedDate: {
@@ -40,7 +39,7 @@ const customerSchema = new mongoose.Schema(
       required: false,
     },
   },
-  { timestamps: true, versionKey: false }
+  { timestamps: false, versionKey: false }
 );
 
 customerSchema.plugin(mongoosePaginate);
