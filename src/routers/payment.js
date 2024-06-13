@@ -18,7 +18,12 @@ const permitAdd = permit("payment", ["create"]);
 router.post("/", permitAdd, validator.body(createSchema), Controller.addNew);
 
 const permitReadAll = permit("payment", ["readAll"]);
-router.get("/all", permitReadAll, validator.query(findAll), Controller.findAll);
+router.post(
+  "/all",
+  permitReadAll,
+  validator.query(findAll),
+  Controller.findAll
+);
 
 const permitUpdate = permit("payment", ["update"]);
 router.put(

@@ -101,7 +101,13 @@ module.exports = {
   findOne: async function (req, res, next) {
     try {
       const { id } = req.params;
-      const payment = await Payment.findById(id).exec();
+      const payment = await Payment.findById(id)
+        .populate({
+          path: "customer",
+          select: "name",
+          model: "Customer",
+        })
+        .exec();
 
       if (!payment) {
         return res.status(404).json({ message: "Payment not found" });
@@ -116,7 +122,40 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const payments = await Payment.find().exec();
+      const { limit, page, search, method, customer, dateFrom, dateTo, user } =
+        req.body;
+      let query = {};
+
+      if (search) {
+        query["name"] = { $regex: new RegExp(search, "i") };
+      }
+      if (method) {
+        query.method = method;
+      }
+      if (customer) {
+        query.customer = customer;
+      }
+
+      if (dateFrom && dateTo) {
+        query["date"] = {
+          $gte: `${dateFrom} 00:00:00`,
+          $lte: `${dateTo} 23:59:00`,
+        };
+      }
+
+      console.log("query", query);
+      const options = {
+        limit: parseInt(limit) || 10,
+        page: parseInt(page) || 1,
+        populate: [
+          {
+            path: "customer",
+            select: "name",
+            model: "Customer",
+          },
+        ],
+      };
+      const payments = await Payment.paginate(query, options);
       res.status(200).json(payments);
     } catch (err) {
       console.error(err);

@@ -23,6 +23,9 @@ const readSchema = Joi.object({
 const findAll = Joi.object({
   limit: Joi.number().integer().min(1).default(10),
   page: Joi.number().integer().min(1).default(1),
+  dateFrom: Joi.string().optional(),
+  dateTo: Joi.string().optional(),
+  customer: Joi.string().optional(),
 });
 
 module.exports = {
