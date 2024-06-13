@@ -46,6 +46,22 @@ const stockPurchaseSchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
+    costTotal: {
+      type: Number,
+      min: 0,
+    },
+    costPerUnitOnUSD: {
+      type: Number,
+      min: 0,
+    },
+    costTotalOnUSD: {
+      type: Number,
+      min: 0,
+    },
+    oneUSDCurrency: {
+      type: Number,
+      min: 0,
+    },
     unitOfMeasurement: {
       type: String,
       required: true,

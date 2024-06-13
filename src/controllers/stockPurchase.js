@@ -24,7 +24,20 @@ module.exports = {
         req.body.unitOfMeasurement = material.unitOfMeasurement;
         req.body.user = req.user._id;
 
-        const newPurchase = new StockPurchase(req.body);
+        const newPurchase = new StockPurchase({
+          supplier: req.body.supplier,
+          user: req.user._id,
+          rawMaterial: req.body.rawMaterial,
+          quantityPurchased: req.body.quantityPurchased,
+          unitOfMeasurement: req.body.unitOfMeasurement,
+          costPerUnit: req.body.costPerUnit,
+          costTotal: req.body.quantityPurchased * req.body.costPerUnit,
+          costPerUnitOnUSD: req.body.costPerUnitOnUSD,
+          unitOfMeasurement: req.body.unitOfMeasurement,
+          costTotalOnUSD:
+            req.body.quantityPurchased * req.body.costPerUnitOnUSD,
+          oneUSDCurrency: req.body.oneUSDCurrency,
+        });
         const doc = await newPurchase.save();
         res.status(201).json(doc);
       } else {
@@ -40,7 +53,20 @@ module.exports = {
         req.body.unitOfMeasurement = material.unitOfMeasurement;
         req.body.user = req.user._id;
 
-        const newPurchase = new StockPurchase(req.body);
+        const newPurchase = new StockPurchase({
+          supplier: req.body.supplier,
+          user: req.user._id,
+          rawMaterial: req.body.rawMaterial,
+          quantityPurchased: req.body.quantityPurchased,
+          unitOfMeasurement: req.body.unitOfMeasurement,
+          costPerUnit: req.body.costPerUnit,
+          costTotal: req.body.quantityPurchased * req.body.costPerUnit,
+          costPerUnitOnUSD: req.body.costPerUnitOnUSD,
+          unitOfMeasurement: req.body.unitOfMeasurement,
+          costTotalOnUSD:
+            req.body.quantityPurchased * req.body.costPerUnitOnUSD,
+          oneUSDCurrency: req.body.oneUSDCurrency,
+        });
         const doc = await newPurchase.save();
         res.status(201).json(doc);
       }

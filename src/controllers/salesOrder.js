@@ -6,11 +6,18 @@ const Payment = require("../models/payment");
 const Customer = require("../models/customer");
 const { ErrorHandler } = require("../util/error");
 const mongoose = require("mongoose");
+
 module.exports = {
   addNew: async function (req, res, next) {
     try {
-      const { customer, payments, shippingAddress, orderNotes, items } =
-        req.body;
+      const {
+        customer,
+        payments,
+        shippingAddress,
+        oneUSDCurrency,
+        orderNotes,
+        items,
+      } = req.body;
       const user = req.user._id;
 
       const salesOrder = new SalesOrder({
@@ -23,10 +30,12 @@ module.exports = {
       const itemPromises = items.map(async (item) => {
         const product = await Product.findById(item.product);
         if (!product) {
-          throw new Error(`Bizda bunday ${product.name} mahsulot mavjud emas `);
+          throw new Error(`Bizda bunday ${product.name} mahsulot mavjud emas`);
         }
 
-        const total_amount = item.quantity * product.product_sellingPrice;
+        const total_amount = item.quantity * item.product_sellingPrice;
+        const total_amountOnUSD =
+          item.quantity * item.product_sellingPriceOnUSD;
         const total_origin_amount = item.quantity * product.product_originPrice;
         const total_income_amount = total_amount - total_origin_amount;
 
@@ -56,7 +65,9 @@ module.exports = {
           unitOfMeasurement: product.unitOfMeasurement,
           total_amount,
           total_origin_amount,
+          total_amountOnUSD,
           total_income_amount,
+          oneUSDCurrency,
           subtotal: total_amount,
         });
 
@@ -69,9 +80,11 @@ module.exports = {
       let totalSalesOrderAmount = 0;
       let totalSalesOrderOriginAmount = 0;
       let totalSalesOrderIncomeAmount = 0;
+      let totalSalesOrderOnUSDAmount = 0;
 
       savedSalesOrderItems.forEach((salesOrderItem) => {
         totalSalesOrderAmount += salesOrderItem.total_amount;
+        totalSalesOrderOnUSDAmount += salesOrderItem.total_amountOnUSD;
         totalSalesOrderOriginAmount += salesOrderItem.total_origin_amount;
         totalSalesOrderIncomeAmount += salesOrderItem.total_income_amount;
       });
@@ -79,6 +92,7 @@ module.exports = {
       salesOrder.total_amount = totalSalesOrderAmount;
       salesOrder.total_origin_amount = totalSalesOrderOriginAmount;
       salesOrder.total_income_amount = totalSalesOrderIncomeAmount;
+      salesOrder.total_onUSD_amount = totalSalesOrderOnUSDAmount;
 
       let remainingDebt = totalSalesOrderAmount;
       let amountFromCustomerMoney = 0;

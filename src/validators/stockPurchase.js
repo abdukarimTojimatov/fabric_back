@@ -6,6 +6,8 @@ const createSchema = Joi.object({
   quantityPurchased: Joi.number().optional(),
   costPerUnit: Joi.number().min(0),
   unitOfMeasurement: Joi.string().required(),
+  costPerUnitOnUSD: Joi.number().optional(),
+  oneUSDCurrency: Joi.number().optional(),
 });
 
 const updateSchema = Joi.object({
