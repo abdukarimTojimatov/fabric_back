@@ -41,8 +41,10 @@ const salesOrderItemSchema = new mongoose.Schema(
     total_amount: { type: Number },
     total_origin_amount: { type: Number },
     total_amountOnUSD: { type: Number },
-    oneUSDCurrency: { type: Number },
     total_income_amount: { type: Number },
+    oneUSDCurrency: { type: Number },
+    product_sellingPrice: { type: Number },
+    product_sellingPriceOnUSD: { type: Number },
     subtotal: {
       type: Number,
       required: true,

@@ -15,6 +15,7 @@ module.exports = {
         payments,
         shippingAddress,
         oneUSDCurrency,
+        shippingCost,
         orderNotes,
         items,
       } = req.body;
@@ -24,6 +25,8 @@ module.exports = {
         customer,
         shippingAddress,
         orderNotes,
+        oneUSDCurrency,
+        shippingCost,
         user,
       });
 
@@ -61,6 +64,8 @@ module.exports = {
           customer: salesOrder.customer,
           product: item.product,
           salesOrder: salesOrder._id,
+          product_sellingPrice: item.product_sellingPrice,
+          product_sellingPriceOnUSD: item.product_sellingPriceOnUSD,
           quantity: item.quantity,
           unitOfMeasurement: product.unitOfMeasurement,
           total_amount,
@@ -90,6 +95,8 @@ module.exports = {
       });
 
       salesOrder.total_amount = totalSalesOrderAmount;
+      salesOrder.total_amountWithShippingCost =
+        totalSalesOrderAmount + shippingCost;
       salesOrder.total_origin_amount = totalSalesOrderOriginAmount;
       salesOrder.total_income_amount = totalSalesOrderIncomeAmount;
       salesOrder.total_onUSD_amount = totalSalesOrderOnUSDAmount;
@@ -110,7 +117,9 @@ module.exports = {
             salesOrderId: salesOrder._id,
             amount: payment.amount,
             method: payment.method,
+            amountOnUSD: payment.amountOnUSD,
             customer: salesOrder.customer,
+            oneUSDCurrency: oneUSDCurrency,
           });
           await newPayment.save();
           return newPayment;
@@ -454,7 +463,7 @@ module.exports = {
             },
           },
         ]);
-        console.log(totalQuantityResult);
+
         const options = {
           limit: parseInt(limit),
           page: parseInt(page),

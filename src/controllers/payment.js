@@ -122,16 +122,18 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit, page, search, method, customer, dateFrom, dateTo, user } =
+      const { limit, page, search, method, customer, dateFrom, dateTo } =
         req.body;
       let query = {};
 
       if (search) {
         query["name"] = { $regex: new RegExp(search, "i") };
       }
+
       if (method) {
         query.method = method;
       }
+
       if (customer) {
         query.customer = customer;
       }
@@ -143,7 +145,6 @@ module.exports = {
         };
       }
 
-      console.log("query", query);
       const options = {
         limit: parseInt(limit) || 10,
         page: parseInt(page) || 1,
@@ -155,7 +156,9 @@ module.exports = {
           },
         ],
       };
+
       const payments = await Payment.paginate(query, options);
+
       res.status(200).json(payments);
     } catch (err) {
       console.error(err);

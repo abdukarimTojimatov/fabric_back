@@ -2,6 +2,8 @@ const Joi = require("joi");
 
 const createSchema = Joi.object({
   amount: Joi.number().required().min(0),
+  amountOnUSD: Joi.number().optional().min(0),
+  oneUSDCurrency: Joi.number().optional().min(0),
   method: Joi.string().valid("cash", "card", "transfer").required(),
   customer: Joi.string().optional(),
 });
@@ -10,6 +12,8 @@ const updateSchema = Joi.object({
   amount: Joi.number().required().min(0),
   method: Joi.string().valid("cash", "card", "transfer").required(),
   customer: Joi.string().optional(),
+  amountOnUSD: Joi.number().optional().min(0),
+  oneUSDCurrency: Joi.number().optional().min(0),
 });
 
 const deleteSchema = Joi.object({

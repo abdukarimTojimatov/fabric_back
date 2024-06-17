@@ -12,6 +12,11 @@ const paymentSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    amountOnUSD: {
+      type: Number,
+      required: false,
+    },
+    oneUSDCurrency: { type: Number },
     method: {
       type: String,
       enum: ["cash", "card", "transfer"],
