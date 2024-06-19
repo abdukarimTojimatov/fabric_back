@@ -8,6 +8,7 @@ const createSchema = Joi.object({
   unitOfMeasurement: Joi.string().required(),
   costPerUnitOnUSD: Joi.number().optional(),
   oneUSDCurrency: Joi.number().optional(),
+  shippingCost: Joi.number().optional(),
 });
 
 const updateSchema = Joi.object({
@@ -17,6 +18,7 @@ const updateSchema = Joi.object({
   costPerUnit: Joi.number().optional().min(0),
   id: Joi.string().required(),
   unitOfMeasurement: Joi.string().optional(),
+  shippingCost: Joi.number().optional(),
 });
 
 const deleteSchema = Joi.object({

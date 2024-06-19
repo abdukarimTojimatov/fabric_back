@@ -46,6 +46,11 @@ const stockPurchaseSchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
+    shippingCost: {
+      type: Number,
+      min: 0,
+    },
+    total_amountWithShippingCost: { type: Number, required: true },
     costTotal: {
       type: Number,
       min: 0,

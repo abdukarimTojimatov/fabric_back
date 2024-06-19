@@ -37,7 +37,12 @@ module.exports = {
           costTotalOnUSD:
             req.body.quantityPurchased * req.body.costPerUnitOnUSD,
           oneUSDCurrency: req.body.oneUSDCurrency,
+          shippingCost: req.body.shippingCost,
+          total_amountWithShippingCost:
+            req.body.quantityPurchased * req.body.costPerUnit +
+            req.body.shippingCost,
         });
+
         const doc = await newPurchase.save();
         res.status(201).json(doc);
       } else {
@@ -66,6 +71,10 @@ module.exports = {
           costTotalOnUSD:
             req.body.quantityPurchased * req.body.costPerUnitOnUSD,
           oneUSDCurrency: req.body.oneUSDCurrency,
+          shippingCost: req.body.shippingCost,
+          total_amountWithShippingCost:
+            req.body.quantityPurchased * req.body.costPerUnit +
+            req.body.shippingCost,
         });
         const doc = await newPurchase.save();
         res.status(201).json(doc);
