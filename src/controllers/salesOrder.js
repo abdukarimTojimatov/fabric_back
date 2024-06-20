@@ -94,6 +94,8 @@ module.exports = {
         totalSalesOrderIncomeAmount += salesOrderItem.total_income_amount;
       });
 
+      const total_amountWithShippingCost = totalSalesOrderAmount + shippingCost;
+
       salesOrder.total_amount = totalSalesOrderAmount;
       salesOrder.total_amountWithShippingCost =
         totalSalesOrderAmount + shippingCost;
