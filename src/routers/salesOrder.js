@@ -23,4 +23,9 @@ router.route("/:id").delete(permitDelete, Controller.deleteOne);
 const permitFindOne = permit("salesOrder", ["read"]);
 router.route("/:id").get(permitFindOne, Controller.findOne);
 
+const permitFindALl = permit("salesOrder", ["read"]);
+router
+  .route("/allItems")
+  .post(permitFindALl, Controller.findAllSalesOrderItems);
+
 module.exports = router;

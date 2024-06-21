@@ -650,4 +650,102 @@ module.exports = {
       next(new ErrorHandler(400, "Failed to find orders", err.message));
     }
   },
+  findAllSalesOrderItems: async function (req, res, next) {
+    try {
+      const { limit, page, customer, product, dateFrom, dateTo } = req.body;
+
+      function parseDate(dateString, endOfDay = false) {
+        const [year, month, day] = dateString.split(":");
+        if (endOfDay) {
+          return `${year}-${month}-${day}-23:59`;
+        }
+        return `${year}-${month}-${day}-00:00`;
+      }
+
+      let query = {};
+
+      if (customer) {
+        query.customer = customer;
+      }
+
+      if (product) {
+        query.product = product;
+      }
+
+      if (dateFrom && dateTo) {
+        const fromDate = parseDate(dateFrom);
+        const toDate = parseDate(dateTo, true);
+        query.date = { $gte: fromDate, $lte: toDate };
+      }
+
+      if (!req.body.page || !req.body.limit) {
+        purchases = await SalesOrderItem.find(query)
+          .populate({
+            path: "customer",
+            select: "name",
+            model: "Customer",
+            strictPopulate: false,
+          })
+          .populate({
+            path: "product",
+            select: "name",
+            model: "Product",
+            strictPopulate: false,
+          })
+          .populate({
+            path: "salesOrder",
+            select: "autoNumber",
+            model: "SalesOrder",
+            strictPopulate: false,
+          })
+          .exec();
+      } else {
+        const options = {
+          limit: parseInt(limit),
+          page: parseInt(page),
+        };
+
+        if (customer) {
+          query.customer = new mongoose.Types.ObjectId(query.customer);
+        }
+
+        if (product) {
+          query.product = new mongoose.Types.ObjectId(query.product);
+        }
+
+        const paginatedResults = await SalesOrderItem.paginate(query, options);
+        const populatedDocs = await SalesOrderItem.populate(
+          paginatedResults.docs,
+          [
+            {
+              path: "product",
+              select: "name",
+              model: "Product",
+              strictPopulate: false,
+            },
+            {
+              path: "customer",
+              select: "name",
+              model: "Customer",
+              strictPopulate: false,
+            },
+            {
+              path: "salesOrder",
+              select: "autoNumber",
+              model: "SalesOrder",
+              strictPopulate: false,
+            },
+          ]
+        );
+
+        paginatedResults.docs = populatedDocs;
+        purchases = paginatedResults;
+      }
+
+      return res.status(200).json(purchases);
+    } catch (err) {
+      console.error(err);
+      next(new ErrorHandler(400, "Failed to find purchases", err.message));
+    }
+  },
 };
