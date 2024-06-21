@@ -103,7 +103,7 @@ module.exports = {
       salesOrder.total_income_amount = totalSalesOrderIncomeAmount;
       salesOrder.total_onUSD_amount = totalSalesOrderOnUSDAmount;
 
-      let remainingDebt = total_amountWithShippingCost;
+      let remainingDebt = totalSalesOrderAmount;
       let amountFromCustomerMoney = 0;
       const customerObj = await Customer.findById(customer);
 
@@ -133,10 +133,10 @@ module.exports = {
           (sum, payment) => sum + payment.amount,
           0
         );
-        if (totalPaid > total_amountWithShippingCost) {
+        if (totalPaid > totalSalesOrderAmount) {
           throw new Error(
             ` Siz ${
-              totalPaid - total_amountWithShippingCost
+              totalPaid - totalSalesOrderAmount
             } so'm keragidan ortiq mablag' to'lamoqdasiz, `
           );
         }
