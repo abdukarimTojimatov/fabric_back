@@ -52,18 +52,6 @@ const productionOrder = new mongoose.Schema(
         "tonna",
       ],
     },
-    status: {
-      type: String,
-      enum: ["expecting", "in-progress", "completed", "cancelled"],
-      default: "completed",
-    },
-
-    scheduledDate: {
-      type: Date,
-    },
-    completionDate: {
-      type: Date,
-    },
     date: {
       type: String,
       default: moment().format("YYYY-MM-DD-HH:mm"),

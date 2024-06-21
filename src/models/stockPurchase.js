@@ -33,10 +33,6 @@ const stockPurchaseSchema = new mongoose.Schema(
         "tonna",
       ],
     },
-    date: {
-      type: String,
-      default: moment().format("YYYY-MM-DD-HH:mm"),
-    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -81,6 +77,10 @@ const stockPurchaseSchema = new mongoose.Schema(
         "metrkv",
         "tonna",
       ],
+    },
+    date: {
+      type: String,
+      default: moment().format("YYYY-MM-DD-HH:mm"),
     },
   },
   { timestamps: true, versionKey: false }

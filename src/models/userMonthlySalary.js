@@ -1,5 +1,3 @@
-// models/UserMonthlySalary.js
-
 const mongoose = require("mongoose");
 const moment = require("moment");
 const attendanceSchema = new mongoose.Schema({

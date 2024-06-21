@@ -88,6 +88,14 @@ module.exports = {
   updateOne: async function (req, res, next) {
     try {
       const { id } = req.params;
+
+      // Fetch the original purchase document
+      const originalPurchase = await StockPurchase.findById(id).exec();
+      if (!originalPurchase) {
+        return res.status(404).json({ message: "Purchase not found" });
+      }
+
+      // Update the purchase document with the new values
       const updatedPurchase = await StockPurchase.findByIdAndUpdate(
         id,
         req.body,
@@ -98,20 +106,49 @@ module.exports = {
         return res.status(404).json({ message: "Purchase not found" });
       }
 
+      // Calculate the difference in quantityPurchased
+      const quantityDifference =
+        updatedPurchase.quantityPurchased - originalPurchase.quantityPurchased;
+
+      // Update the quantityInStock of the StockRawMaterial
+      const updatedStock = await StockRawMaterial.findOneAndUpdate(
+        { rawMaterial: originalPurchase.rawMaterial },
+        { $inc: { quantityInStock: quantityDifference } },
+        { new: true }
+      ).exec();
+
+      if (!updatedStock) {
+        return res.status(404).json({ message: "StockRawMaterial not found" });
+      }
+
       res.status(200).json(updatedPurchase);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to update purchase", err.message));
     }
   },
-
   deleteOne: async function (req, res, next) {
     try {
       const { id } = req.params;
+
+      // Fetch the purchase document to get quantityPurchased and rawMaterial
+      const purchase = await StockPurchase.findById(id).exec();
+      if (!purchase) {
+        return res.status(404).json({ message: "Purchase not found" });
+      }
+
+      // Delete the purchase document
       const deletedPurchase = await StockPurchase.findByIdAndDelete(id).exec();
 
-      if (!deletedPurchase) {
-        return res.status(404).json({ message: "Purchase not found" });
+      // Update the quantityInStock of the corresponding StockRawMaterial
+      const updateStock = await StockRawMaterial.findOneAndUpdate(
+        { rawMaterial: purchase.rawMaterial },
+        { $inc: { quantityInStock: -purchase.quantityPurchased } },
+        { new: true }
+      ).exec();
+
+      if (!updateStock) {
+        return res.status(404).json({ message: "StockRawMaterial not found" });
       }
 
       res.status(200).json({ message: "Purchase deleted successfully" });
@@ -120,7 +157,6 @@ module.exports = {
       next(new ErrorHandler(400, "Failed to delete purchase", err.message));
     }
   },
-
   findOne: async function (req, res, next) {
     try {
       const { id } = req.params;
@@ -161,13 +197,15 @@ module.exports = {
       const { limit, page, rawMaterial, supplier, dateFrom, dateTo } = req.body;
 
       let purchases;
+
       function parseDate(dateString, endOfDay = false) {
         const [year, month, day] = dateString.split(":");
         if (endOfDay) {
-          return new Date(`${year}-${month}-${day}T23:59:59.999Z`);
+          return `${year}-${month}-${day}-23:59`;
         }
-        return new Date(`${year}-${month}-${day}T00:00:00Z`);
+        return `${year}-${month}-${day}-00:00`;
       }
+
       let query = {};
 
       if (rawMaterial) {
@@ -181,7 +219,7 @@ module.exports = {
       if (dateFrom && dateTo) {
         const fromDate = parseDate(dateFrom);
         const toDate = parseDate(dateTo, true);
-        query.createdAt = { $gte: fromDate, $lte: toDate };
+        query.date = { $gte: fromDate, $lte: toDate };
       }
 
       if (!req.body.page || !req.body.limit) {
@@ -210,6 +248,7 @@ module.exports = {
           limit: parseInt(limit),
           page: parseInt(page),
         };
+
         if (rawMaterial) {
           query.rawMaterial = new mongoose.Types.ObjectId(query.rawMaterial);
         }

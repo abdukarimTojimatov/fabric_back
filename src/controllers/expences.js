@@ -75,15 +75,15 @@ module.exports = {
       function parseDate(dateString, endOfDay = false) {
         const [year, month, day] = dateString.split(":");
         if (endOfDay) {
-          return new Date(`${year}-${month}-${day}T23:59:59.999Z`);
+          return `${year}-${month}-${day}-23:59`;
         }
-        return new Date(`${year}-${month}-${day}T00:00:00Z`);
+        return `${year}-${month}-${day}-00:00`;
       }
 
       if (dateFrom && dateTo) {
         const fromDate = parseDate(dateFrom);
         const toDate = parseDate(dateTo, true);
-        query.createdAt = { $gte: fromDate, $lte: toDate };
+        query.date = { $gte: fromDate, $lte: toDate };
       }
 
       if (!limit || !page) {
