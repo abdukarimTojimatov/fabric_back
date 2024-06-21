@@ -154,6 +154,11 @@ module.exports = {
             select: "name",
             model: "Customer",
           },
+          {
+            path: "salesOrderId",
+            select: "autoNumber",
+            model: "SalesOrder",
+          },
         ],
       };
 
