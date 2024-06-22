@@ -344,11 +344,11 @@ module.exports = {
       }
 
       // Calculate the total amount to pay from the provided payments
-      const totalAmountToPay = paymentsData.reduce(
+      let totalAmountToPay = paymentsData.reduce(
         (sum, payment) => sum + payment.amount,
         0
       );
-
+      totalAmountToPay = totalAmountToPay + order.totalPaid;
       // Fetch the customer object
       const customerObj = await Customer.findById(order.customer);
       if (!customerObj) {
@@ -379,7 +379,8 @@ module.exports = {
 
       // Fetch all payments for the order
       const payments = await Payment.find({ salesOrderId: orderId });
-      const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+      const totalPaid =
+        payments.reduce((sum, p) => sum + p.amount, 0) + order.totalPaid;
 
       // Update order payment details
       order.totalPaid = totalPaid;
