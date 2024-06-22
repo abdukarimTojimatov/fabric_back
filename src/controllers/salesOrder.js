@@ -348,7 +348,7 @@ module.exports = {
         (sum, payment) => sum + payment.amount,
         0
       );
-      totalAmountToPay = totalAmountToPay + order.totalPaid;
+
       // Fetch the customer object
       const customerObj = await Customer.findById(order.customer);
       if (!customerObj) {
