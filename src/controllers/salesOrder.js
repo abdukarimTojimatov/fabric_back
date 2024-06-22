@@ -379,7 +379,8 @@ module.exports = {
 
       // Fetch all payments for the order
       const payments = await Payment.find({ salesOrderId: orderId });
-      const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+      let totalPaid =
+        payments.reduce((sum, p) => sum + p.amount, 0) + order.totalPaid;
 
       // Update order payment details
       order.totalPaid = totalPaid;
