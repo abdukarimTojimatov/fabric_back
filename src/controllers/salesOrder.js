@@ -59,6 +59,27 @@ module.exports = {
           );
         }
 
+        let totalOrderAmount = 0;
+        items.forEach((item) => {
+          totalOrderAmount += item.product_sellingPrice * item.quantity;
+        });
+
+        // Calculate the total payment amount
+        let totalPaymentAmount = 0;
+        payments.forEach((payment) => {
+          totalPaymentAmount += payment.amount;
+        });
+
+        // Validate the payment amount
+
+        if (totalPaymentAmount > totalOrderAmount) {
+          throw new Error(
+            `Siz ${
+              totalPaymentAmount - totalOrderAmount
+            } miqdorda ko'p to'lov qilayabsiz`
+          );
+        }
+
         // Reduce the stock quantity
         stockProduct.quantityInStock -= item.quantity;
         await stockProduct.save();
@@ -100,8 +121,6 @@ module.exports = {
         totalSalesOrderIncomeAmount += salesOrderItem.total_income_amount;
       });
 
-      const total_amountWithShippingCost = totalSalesOrderAmount + shippingCost;
-
       // Set totals in the sales order
       salesOrder.total_amount = totalSalesOrderAmount;
       salesOrder.total_origin_amount = totalSalesOrderOriginAmount;
@@ -139,13 +158,6 @@ module.exports = {
           (sum, payment) => sum + payment.amount,
           0
         );
-
-        // Handle overpayment by adding excess to customerMoney
-        if (totalPaid > totalSalesOrderAmount) {
-          const excessPayment = totalPaid - totalSalesOrderAmount;
-          customerObj.customerMoney += excessPayment;
-          totalPaid = totalSalesOrderAmount;
-        }
 
         remainingDebt -= totalPaid;
       }
