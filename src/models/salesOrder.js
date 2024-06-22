@@ -19,7 +19,6 @@ const salesOrderSchema = new mongoose.Schema(
     },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     total_amount: { type: Number, required: true },
-    total_amountWithShippingCost: { type: Number, required: true },
     total_origin_amount: { type: Number, required: true },
     total_income_amount: { type: Number, required: true },
     amountFromCustomerMoney: { type: Number, default: 0 },

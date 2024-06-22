@@ -11,21 +11,25 @@ module.exports = {
     try {
       const { year, month } = req.body;
 
-      const startDate = new Date(Date.UTC(year, month - 1, 1));
-      const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59));
+      const startDate = `${year}-${String(month).padStart(2, "0")}-01-00:00`;
+      const endDate = `${year}-${String(month).padStart(2, "0")}-${new Date(
+        year,
+        month,
+        0
+      ).getDate()}-23:59`;
 
       const totalSales = await SalesOrder.aggregate([
         {
           $match: {
-            createdAt: { $gte: startDate, $lte: endDate },
+            date: { $gte: startDate, $lte: endDate },
           },
         },
         {
           $group: {
             _id: {
-              year: { $year: "$createdAt" },
-              month: { $month: "$createdAt" },
-              day: { $dayOfMonth: "$createdAt" },
+              year: { $substr: ["$date", 0, 4] },
+              month: { $substr: ["$date", 5, 2] },
+              day: { $substr: ["$date", 8, 2] },
             },
             total_amount: { $sum: "$total_amount" },
             total_origin_amount: { $sum: "$total_origin_amount" },
@@ -53,27 +57,30 @@ module.exports = {
       next(new ErrorHandler(400, "Failed to find orders", err.message));
     }
   },
+
   monthsInYear: async function (req, res, next) {
     try {
       const { year } = req.body;
 
-      const startDate = new Date(Date.UTC(year, 0, 1));
-      const endDate = new Date(Date.UTC(year + 1, 0, 0, 23, 59, 59));
+      const startDate = `${year}-01-01-00:00`;
+      const endDate = `${year}-12-31-23:59`;
 
       const totalMonthlySales = await SalesOrder.aggregate([
         {
           $match: {
-            createdAt: { $gte: startDate, $lte: endDate },
+            date: { $gte: startDate, $lte: endDate },
           },
         },
         {
           $group: {
-            _id: { month: { $month: "$createdAt" } },
+            _id: { month: { $substr: ["$date", 5, 2] } },
             total_amount: { $sum: "$total_amount" },
             total_origin_amount: { $sum: "$total_origin_amount" },
             total_income_amount: { $sum: "$total_income_amount" },
             totalDebt: { $sum: "$totalDebt" },
             totalPaid: { $sum: "$totalPaid" },
+            total_onUSD_amount: { $sum: "$total_onUSD_amount" },
+            shippingCost: { $sum: "$shippingCost" },
           },
         },
         {
@@ -82,16 +89,16 @@ module.exports = {
           },
         },
       ]);
-      console.log("totalMonthlySales", totalMonthlySales);
+
       const totalMonthlyExpenses = await ExpenseSchema.aggregate([
         {
           $match: {
-            createdAt: { $gte: startDate, $lte: endDate },
+            date: { $gte: startDate, $lte: endDate },
           },
         },
         {
           $group: {
-            _id: { month: { $month: "$createdAt" } },
+            _id: { month: { $substr: ["$date", 5, 2] } },
             total_expenses: { $sum: "$amount" },
           },
         },
@@ -101,13 +108,11 @@ module.exports = {
           },
         },
       ]);
-      console.log("totalMonthlyExpenses", totalMonthlyExpenses);
-      let yearNumber = parseInt(year, 10);
-      console.log("yearNumber", typeof yearNumber);
+
       const totalMonthlySalaries = await Salary.aggregate([
         {
           $match: {
-            year: yearNumber,
+            year: parseInt(year, 10),
           },
         },
         {
@@ -123,33 +128,40 @@ module.exports = {
         },
       ]);
 
-      console.log("totalMonthlySalaries", totalMonthlySalaries);
-      // Generate a list of all months in the year
       const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
-      // Merge results and calculate total revenue for each month
       const mergedResults = months.map((month) => {
-        const sale = totalMonthlySales.find((s) => s._id.month === month) || {
+        const sale = totalMonthlySales.find(
+          (s) => s._id.month === String(month).padStart(2, "0")
+        ) || {
           total_amount: 0,
           total_origin_amount: 0,
           total_income_amount: 0,
           totalDebt: 0,
           totalPaid: 0,
+          total_onUSD_amount: 0,
+          shippingCost: 0,
         };
         const expense = totalMonthlyExpenses.find(
-          (e) => e._id.month === month
-        ) || { total_expenses: 0 };
+          (e) => e._id.month === String(month).padStart(2, "0")
+        ) || {
+          total_expenses: 0,
+        };
         const salary = totalMonthlySalaries.find(
           (s) => s._id.month === month
-        ) || { total_salaries: 0 };
+        ) || {
+          total_salaries: 0,
+        };
 
         return {
           month: month,
           total_amount: sale.total_amount,
           total_origin_amount: sale.total_origin_amount,
           total_income_amount: sale.total_income_amount,
+          total_onUSD_amount: sale.total_onUSD_amount,
           totalDebt: sale.totalDebt,
           totalPaid: sale.totalPaid,
+          totalShippingCost: sale.shippingCost,
           total_expenses: expense.total_expenses,
           total_salaries: salary.total_salaries,
           total_revenue:
@@ -165,6 +177,7 @@ module.exports = {
       next(new ErrorHandler(400, "Failed to find orders", err.message));
     }
   },
+
   allYears: async function (req, res, next) {
     try {
       const { startYear, endYear } = req.body;
@@ -172,20 +185,22 @@ module.exports = {
       const yearlySales = await SalesOrder.aggregate([
         {
           $match: {
-            createdAt: {
-              $gte: new Date(Date.UTC(startYear, 0, 1)),
-              $lte: new Date(Date.UTC(endYear, 11, 31, 23, 59, 59)),
+            date: {
+              $gte: `${startYear}-01-01-00:00`,
+              $lte: `${endYear}-12-31-23:59`,
             },
           },
         },
         {
           $group: {
-            _id: { year: { $year: "$createdAt" } },
+            _id: { year: { $substr: ["$date", 0, 4] } },
             total_amount: { $sum: "$total_amount" },
             total_origin_amount: { $sum: "$total_origin_amount" },
             total_income_amount: { $sum: "$total_income_amount" },
             totalDebt: { $sum: "$totalDebt" },
             totalPaid: { $sum: "$totalPaid" },
+            total_onUSD_amount: { $sum: "$total_onUSD_amount" },
+            totalShippingCost: { $sum: "$shippingCost" },
           },
         },
         {
@@ -198,15 +213,15 @@ module.exports = {
       const yearlyExpenses = await ExpenseSchema.aggregate([
         {
           $match: {
-            createdAt: {
-              $gte: new Date(Date.UTC(startYear, 0, 1)),
-              $lte: new Date(Date.UTC(endYear, 11, 31, 23, 59, 59)),
+            date: {
+              $gte: `${startYear}-01-01-00:00`,
+              $lte: `${endYear}-12-31-23:59`,
             },
           },
         },
         {
           $group: {
-            _id: { year: { $year: "$createdAt" } },
+            _id: { year: { $substr: ["$date", 0, 4] } },
             total_expenses: { $sum: "$amount" },
           },
         },
@@ -217,12 +232,13 @@ module.exports = {
         },
       ]);
 
-      let start = parseInt(startYear, 10);
-      let end = parseInt(endYear, 10);
       const yearlySalaries = await Salary.aggregate([
         {
           $match: {
-            year: { $gte: start, $lte: end },
+            year: {
+              $gte: parseInt(startYear, 10),
+              $lte: parseInt(endYear, 10),
+            },
           },
         },
         {
@@ -237,7 +253,7 @@ module.exports = {
           },
         },
       ]);
-      console.log("yearlySalaries", yearlySalaries);
+
       const mergedResults = yearlySales.map((sale) => {
         const year = sale._id.year;
 
@@ -255,6 +271,8 @@ module.exports = {
           total_income_amount: sale.total_income_amount,
           totalDebt: sale.totalDebt,
           totalPaid: sale.totalPaid,
+          total_onUSD_amount: sale.total_onUSD_amount,
+          shippingCost: sale.shippingCost,
           total_expenses: expense.total_expenses,
           total_salaries: salary.total_salaries,
           total_revenue:

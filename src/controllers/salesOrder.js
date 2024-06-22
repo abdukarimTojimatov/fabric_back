@@ -102,7 +102,6 @@ module.exports = {
 
       // Set totals in the sales order
       salesOrder.total_amount = totalSalesOrderAmount;
-      salesOrder.total_amountWithShippingCost = total_amountWithShippingCost;
       salesOrder.total_origin_amount = totalSalesOrderOriginAmount;
       salesOrder.total_income_amount = totalSalesOrderIncomeAmount;
       salesOrder.total_onUSD_amount = totalSalesOrderOnUSDAmount;
