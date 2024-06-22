@@ -145,6 +145,22 @@ module.exports = {
         };
       }
 
+      if (!page || !limit) {
+        let payments = await Payment.find(query)
+          .populate({
+            path: "customer",
+            select: "name",
+            model: "Customer",
+          })
+          .populate({
+            path: "salesOrderId",
+            select: "autoNumber",
+            model: "SalesOrder",
+          })
+          .exec();
+        res.status(200).json(payments);
+      }
+
       const options = {
         limit: parseInt(limit) || 10,
         page: parseInt(page) || 1,

@@ -243,6 +243,7 @@ module.exports = {
             strictPopulate: false,
           })
           .exec();
+        res.status(200).json(purchases);
       } else {
         const options = {
           limit: parseInt(limit),
@@ -300,9 +301,8 @@ module.exports = {
         paginatedResults.docs = populatedDocs;
         purchases = paginatedResults;
         purchases.totalQuantitySum = totalQuantitySum;
+        return res.status(200).json(purchases);
       }
-
-      return res.status(200).json(purchases);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find purchases", err.message));

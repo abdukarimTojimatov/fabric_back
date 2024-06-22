@@ -185,6 +185,7 @@ module.exports = {
             select: ["name", "email"],
           })
           .exec();
+        res.status(200).json(productionOrder);
       } else {
         if (product) {
           query.product = new mongoose.Types.ObjectId(query.product);
@@ -222,9 +223,8 @@ module.exports = {
         productionOrder = await ProductionOrder.paginate(query, options);
 
         productionOrder.totalQuantitySum = totalQuantitySum;
+        res.status(200).json(productionOrder);
       }
-
-      res.status(200).json(productionOrder);
     } catch (err) {
       console.error(err);
       next(

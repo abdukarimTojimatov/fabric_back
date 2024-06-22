@@ -515,6 +515,7 @@ module.exports = {
             select: "username",
             model: "User",
           });
+        res.status(200).json(salesOrders);
       } else {
         if (customer) {
           query.customer = new mongoose.Types.ObjectId(customer);
@@ -697,6 +698,7 @@ module.exports = {
             strictPopulate: false,
           })
           .exec();
+        res.status(200).json(purchases);
       } else {
         const options = {
           limit: parseInt(limit),
@@ -738,9 +740,8 @@ module.exports = {
 
         paginatedResults.docs = populatedDocs;
         purchases = paginatedResults;
+        return res.status(200).json(purchases);
       }
-
-      return res.status(200).json(purchases);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find purchases", err.message));

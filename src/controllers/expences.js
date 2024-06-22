@@ -95,6 +95,7 @@ module.exports = {
             strictPopulate: false,
           })
           .exec();
+        res.status(200).json(expences);
       } else {
         if (category) {
           query.category = new mongoose.Types.ObjectId(category);
