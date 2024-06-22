@@ -379,8 +379,7 @@ module.exports = {
 
       // Fetch all payments for the order
       const payments = await Payment.find({ salesOrderId: orderId });
-      const totalPaid =
-        payments.reduce((sum, p) => sum + p.amount, 0) + order.totalPaid;
+      const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
 
       // Update order payment details
       order.totalPaid = totalPaid;
@@ -389,12 +388,8 @@ module.exports = {
       // Determine payment status
       if (order.totalDebt === 0) {
         order.paymentStatus = "paid";
-      } else if (order.totalPaid === 0) {
-        order.paymentStatus = "pending";
       } else if (order.totalPaid < order.total_amount) {
         order.paymentStatus = "partially-paid";
-      } else {
-        order.paymentStatus = "pending";
       }
 
       await order.save();
