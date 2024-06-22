@@ -318,7 +318,7 @@ module.exports = {
   },
   allYears: async function (req, res, next) {
     try {
-      const { startYear, endYear } = req.body;
+      let { startYear, endYear } = req.body;
 
       const startDate = `${startYear}-01-01-00:00`;
       const endDate = `${endYear}-12-31-23:59`;
@@ -409,9 +409,9 @@ module.exports = {
           },
         },
       ]);
-
-      const years = Array.from({ length: endYear - startYear + 1 }, (_, i) =>
-        (startYear + i).toString()
+      const years = Array.from(
+        { length: Number(endYear) - Number(startYear) + 1 },
+        (_, i) => (Number(startYear) + i).toString()
       );
 
       const mergedResults = years.map((year) => {
