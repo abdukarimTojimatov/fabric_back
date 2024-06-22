@@ -54,7 +54,9 @@ module.exports = {
 
         // Check if there is enough stock
         if (stockProduct.quantityInStock < item.quantity) {
-          throw new Error(`Not enough stock for product ${product.name}`);
+          throw new Error(
+            `Omborda yetarli miqdorda ${product.name} mavjud emas `
+          );
         }
 
         // Reduce the stock quantity
