@@ -34,7 +34,7 @@ module.exports = {
             totalDebt: { $sum: "$totalDebt" },
             totalPaid: { $sum: "$totalPaid" },
             total_onUSD_amount: { $sum: "$total_onUSD_amount" },
-            shippingCost: { $sum: "$shippingCost" },
+            totalShippingCostOnSale: { $sum: "$shippingCost" },
           },
         },
         {
@@ -118,18 +118,14 @@ module.exports = {
           totalPaid: 0,
           total_onUSD_amount: 0,
           totalShippingCostOnSale: 0,
-          total_expenses: 0,
-          total_salaries: 0,
-          totalShippingCostOnBuying: 0,
-          totalCostTotalOnUSDOnBuying: 0,
-          totalCostTotalOnUZSOnBuying: 0,
-          total_revenue: 0,
         };
+
         const expense = totalDailyExpenses.find(
           (e) => e._id.day === String(day).padStart(2, "0")
         ) || {
           total_expenses: 0,
         };
+
         const salary = totalDailySalaries.find((s) => s._id.day === day) || {
           total_salaries: 0,
         };
@@ -150,7 +146,7 @@ module.exports = {
           total_onUSD_amount: sale.total_onUSD_amount,
           totalDebt: sale.totalDebt,
           totalPaid: sale.totalPaid,
-          totalShippingCostOnSale: sale.shippingCost,
+          totalShippingCostOnSale: sale.totalShippingCostOnSale,
           total_expenses: expense.total_expenses,
           total_salaries: salary.total_salaries,
           totalShippingCostOnBuying: stockPurchase.total_shippingCost,
@@ -191,7 +187,7 @@ module.exports = {
             totalDebt: { $sum: "$totalDebt" },
             totalPaid: { $sum: "$totalPaid" },
             total_onUSD_amount: { $sum: "$total_onUSD_amount" },
-            shippingCost: { $sum: "$shippingCost" },
+            totalShippingCostOnSale: { $sum: "$shippingCost" },
           },
         },
         {
@@ -273,12 +269,6 @@ module.exports = {
           totalPaid: 0,
           total_onUSD_amount: 0,
           totalShippingCostOnSale: 0,
-          total_expenses: 0,
-          total_salaries: 0,
-          totalShippingCostOnBuying: 0,
-          totalCostTotalOnUSDOnBuying: 0,
-          totalCostTotalOnUZSOnBuying: 0,
-          total_revenue: 0,
         };
         const expense = totalMonthlyExpenses.find(
           (e) => e._id.month === String(month).padStart(2, "0")
@@ -307,7 +297,7 @@ module.exports = {
           total_onUSD_amount: sale.total_onUSD_amount,
           totalDebt: sale.totalDebt,
           totalPaid: sale.totalPaid,
-          totalShippingCostOnSale: sale.shippingCost,
+          totalShippingCostOnSale: sale.totalShippingCostOnSale,
           total_expenses: expense.total_expenses,
           total_salaries: salary.total_salaries,
           totalShippingCostOnBuying: stockPurchase.total_shippingCost,
@@ -330,19 +320,13 @@ module.exports = {
     try {
       const { startYear, endYear } = req.body;
 
-      const startDate = moment(
-        `${startYear}-01-01-00:00`,
-        "YYYY-MM-DD-HH:mm"
-      ).toDate();
-      const endDate = moment(
-        `${endYear}-12-31-23:59`,
-        "YYYY-MM-DD-HH:mm"
-      ).toDate();
+      const startDate = `${startYear}-01-01-00:00`;
+      const endDate = `${endYear}-12-31-23:59`;
 
       const yearlySales = await SalesOrder.aggregate([
         {
           $match: {
-            date: { $gte: new Date(startDate), $lte: new Date(endDate) },
+            date: { $gte: startDate, $lte: endDate },
           },
         },
         {
@@ -354,7 +338,7 @@ module.exports = {
             totalDebt: { $sum: "$totalDebt" },
             totalPaid: { $sum: "$totalPaid" },
             total_onUSD_amount: { $sum: "$total_onUSD_amount" },
-            totalShippingCost: { $sum: "$shippingCost" },
+            totalShippingCostOnSale: { $sum: "$shippingCost" },
           },
         },
         {
@@ -367,7 +351,7 @@ module.exports = {
       const yearlyExpenses = await ExpenseSchema.aggregate([
         {
           $match: {
-            date: { $gte: new Date(startDate), $lte: new Date(endDate) },
+            date: { $gte: startDate, $lte: endDate },
           },
         },
         {
@@ -408,7 +392,7 @@ module.exports = {
       const yearlyStockPurchases = await StockPurchase.aggregate([
         {
           $match: {
-            date: { $gte: new Date(startDate), $lte: new Date(endDate) },
+            date: { $gte: startDate, $lte: endDate },
           },
         },
         {
@@ -439,12 +423,6 @@ module.exports = {
           totalPaid: 0,
           total_onUSD_amount: 0,
           totalShippingCostOnSale: 0,
-          total_expenses: 0,
-          total_salaries: 0,
-          totalShippingCostOnBuying: 0,
-          totalCostTotalOnUSDOnBuying: 0,
-          totalCostTotalOnUZSOnBuying: 0,
-          total_revenue: 0,
         };
         const expense = yearlyExpenses.find((e) => e._id.year === year) || {
           total_expenses: 0,
@@ -470,7 +448,7 @@ module.exports = {
           total_onUSD_amount: sale.total_onUSD_amount,
           totalDebt: sale.totalDebt,
           totalPaid: sale.totalPaid,
-          totalShippingCostOnSale: sale.totalShippingCost,
+          totalShippingCostOnSale: sale.totalShippingCostOnSale,
           total_expenses: expense.total_expenses,
           total_salaries: salary.total_salaries,
           totalShippingCostOnBuying: stockPurchase.total_shippingCost,
