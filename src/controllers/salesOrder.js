@@ -65,19 +65,21 @@ module.exports = {
         });
 
         // Calculate the total payment amount
-        let totalPaymentAmount = 0;
-        payments.forEach((payment) => {
-          totalPaymentAmount += payment.amount;
-        });
+        if (payments) {
+          let totalPaymentAmount = 0;
+          payments.forEach((payment) => {
+            totalPaymentAmount += payment.amount;
+          });
 
-        // Validate the payment amount
+          // Validate the payment amount
 
-        if (totalPaymentAmount > totalOrderAmount) {
-          throw new Error(
-            `Siz ${
-              totalPaymentAmount - totalOrderAmount
-            } miqdorda ko'p to'lov qilayabsiz`
-          );
+          if (totalPaymentAmount > totalOrderAmount) {
+            throw new Error(
+              `Siz ${
+                totalPaymentAmount - totalOrderAmount
+              } miqdorda ko'p to'lov qilayabsiz`
+            );
+          }
         }
 
         // Reduce the stock quantity
