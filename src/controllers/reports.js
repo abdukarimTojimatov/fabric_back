@@ -3,6 +3,7 @@ const SalesOrderItem = require("../models/salesOrderItem");
 const StockPurchase = require("../models/stockPurchase");
 const Product = require("../models/product");
 const Salary = require("../models/salary");
+const Wallet = require("../models/wallet");
 const ExpenseSchema = require("../models/expences");
 const moment = require("moment");
 const { ErrorHandler } = require("../util/error");
@@ -462,6 +463,18 @@ module.exports = {
       });
 
       res.status(200).json(mergedResults);
+    } catch (err) {
+      console.error(err);
+      next(new ErrorHandler(400, "Failed to find orders", err.message));
+    }
+  },
+  getWallet: async function (req, res, next) {
+    try {
+      let wallet = await Wallet.findOne({});
+      if (!wallet) {
+        throw new Error("Wallet not found");
+      }
+      res.status(200).json(wallet);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find orders", err.message));

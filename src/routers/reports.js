@@ -14,6 +14,7 @@ const {
 
 router.route("/daysInMonth").post(Controller.daysInMonth);
 router.route("/monthsInYear").post(Controller.monthsInYear);
+router.route("/wallet").get(Controller.getWallet);
 router.route("/allYears").post(Controller.allYears);
 
 module.exports = router;

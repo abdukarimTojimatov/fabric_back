@@ -1,12 +1,53 @@
 const Expences = require("../models/expences");
+const Wallet = require("../models/wallet");
 const { ErrorHandler } = require("../util/error");
 const mongoose = require("mongoose");
 
 module.exports = {
   addNew: async function (req, res, next) {
     try {
+      const { amount, expencesSource } = req.body;
       const newExpense = new Expences(req.body);
       const doc = await newExpense.save();
+      // Find or create the wallet
+      let wallet = await Wallet.findOne({});
+      if (!wallet) {
+        wallet = new Wallet({
+          walletCash: 0,
+          walletCard: 0,
+          walletBank: 0,
+        });
+      }
+
+      // Deduct the amount from the appropriate wallet field
+      switch (expencesSource) {
+        case "walletCash":
+          if (wallet.walletCash < amount) {
+            throw new Error("Sizda yetarli miqdorda naqd pul mavjud emas");
+          }
+          wallet.walletCash -= amount;
+          break;
+        case "walletCard":
+          if (wallet.walletCard < amount) {
+            throw new Error(
+              "Sizda yetarli miqdorda cartangizda pul mavjud emas"
+            );
+          }
+          wallet.walletCard -= amount;
+          break;
+        case "walletBank":
+          if (wallet.walletBank < amount) {
+            throw new Error(
+              "Sizda yetarli miqdorda bankingizda pul mavjud emas"
+            );
+          }
+          wallet.walletBank -= amount;
+          break;
+        default:
+          throw new Error(`Invalid expense source ${expencesSource}`);
+      }
+
+      await wallet.save();
       res.status(201).json(doc);
     } catch (err) {
       console.error(err);
