@@ -1,3 +1,4 @@
+const { custom } = require("joi");
 const Customer = require("../models/customer");
 const { ErrorHandler } = require("../util/error");
 
@@ -85,12 +86,16 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit = 10, page = 1, search } = req.body;
+      const { limit, page, search, customerType } = req.body;
 
       let query = {};
 
       if (search) {
         query["name"] = { $regex: new RegExp(search, "i") };
+      }
+
+      if (customerType) {
+        query["customerType"] = customerType;
       }
 
       let customers;

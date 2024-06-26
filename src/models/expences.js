@@ -8,16 +8,19 @@ const expenseSchema = new mongoose.Schema(
       ref: "ExpenseCategory",
       required: true,
     },
-
     description: {
       type: String,
       required: false,
     },
-
     amount: {
       type: Number,
       required: true,
       min: 0,
+    },
+    expencesSource: {
+      type: String,
+      required: true,
+      enum: ["walletCash", "walletCard", "walletBank"],
     },
     date: {
       type: String,

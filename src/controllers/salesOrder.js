@@ -4,6 +4,7 @@ const Product = require("../models/product");
 const StockProduct = require("../models/stockProduct");
 const Payment = require("../models/payment");
 const Customer = require("../models/customer");
+const Wallet = require("../models/wallet");
 const { ErrorHandler } = require("../util/error");
 const mongoose = require("mongoose");
 
@@ -160,6 +161,33 @@ module.exports = {
           (sum, payment) => sum + payment.amount,
           0
         );
+
+        // Update the wallet based on the payment method
+        for (const payment of savedPayments) {
+          const wallet = await Wallet.findOne({});
+          if (!wallet) {
+            wallet = new Wallet({
+              walletCash: 0,
+              walletCard: 0,
+              walletBank: 0,
+            });
+          }
+
+          switch (payment.method) {
+            case "cash":
+              wallet.walletCash += payment.amount;
+              break;
+            case "card":
+              wallet.walletCard += payment.amount;
+              break;
+            case "transfer":
+              wallet.walletBank += payment.amount;
+              break;
+            default:
+              throw new Error(`Invalid payment method ${payment.method}`);
+          }
+          await wallet.save();
+        }
 
         remainingDebt -= totalPaid;
       }

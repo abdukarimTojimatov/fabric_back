@@ -25,6 +25,11 @@ const customerSchema = new mongoose.Schema(
       required: false,
       default: 0,
     },
+    customerType: {
+      type: String,
+      required: true,
+      enum: ["gips", "gipsakardon"],
+    },
     customerMoney: {
       type: Number,
       required: false,

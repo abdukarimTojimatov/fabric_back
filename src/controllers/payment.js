@@ -2,6 +2,7 @@ const Payment = require("../models/payment");
 const mongoose = require("mongoose");
 const SalesOrder = require("../models/salesOrder");
 const Customer = require("../models/customer");
+const Wallet = require("../models/wallet");
 const { ErrorHandler } = require("../util/error");
 
 module.exports = {
@@ -44,11 +45,38 @@ module.exports = {
 
         await order.save({ session });
       }
+
       if (remainingAmount > 0) {
         customer.customerMoney += remainingAmount;
       }
       customer.customerDebt -= payment.amount - remainingAmount;
       await customer.save({ session });
+
+      // Find or create the wallet
+      let wallet = await Wallet.findOne({}).session(session);
+      if (!wallet) {
+        wallet = new Wallet({
+          walletCash: 0,
+          walletCard: 0,
+          walletBank: 0,
+        });
+      }
+
+      // Update the wallet based on the payment method
+      switch (payment.method) {
+        case "cash":
+          wallet.walletCash += payment.amount;
+          break;
+        case "card":
+          wallet.walletCard += payment.amount;
+          break;
+        case "transfer":
+          wallet.walletBank += payment.amount;
+          break;
+        default:
+          throw new Error(`Invalid payment method ${payment.method}`);
+      }
+      await wallet.save({ session });
 
       await session.commitTransaction();
       session.endSession();

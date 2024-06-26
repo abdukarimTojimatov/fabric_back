@@ -1,23 +1,16 @@
 const Joi = require("joi");
 
 const createSchema = Joi.object({
-  name: Joi.string().required(),
-  phone: Joi.number().required(),
-  address: Joi.string().optional(),
-  notes: Joi.string().optional(),
-  customerDebt: Joi.number().optional(),
-  customerMoney: Joi.number().optional(),
-  customerType: Joi.string().required(),
+  walletCash: Joi.number().required(),
+  walletCard: Joi.number().required(),
+  walletBank: Joi.number().required(),
 });
 
 const updateSchema = Joi.object({
   name: Joi.string().optional(),
-  phone: Joi.number().optional(),
-  address: Joi.string().optional(),
-  notes: Joi.string().optional(),
-  id: Joi.string().optional(),
-  customerType: Joi.string().optional(),
-  customerMoney: Joi.number().optional(),
+  walletCash: Joi.number().optional(),
+  walletCard: Joi.number().optional(),
+  walletBank: Joi.number().optional(),
 });
 
 const deleteSchema = Joi.object({

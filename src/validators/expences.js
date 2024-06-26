@@ -3,6 +3,7 @@ const Joi = require("joi");
 const createSchema = Joi.object({
   category: Joi.string().required(),
   description: Joi.string().optional(),
+  expencesSource: Joi.string().required(),
   amount: Joi.number().required().min(0),
 });
 
@@ -11,6 +12,7 @@ const updateSchema = Joi.object({
   description: Joi.string().optional(),
   amount: Joi.number().optional().min(0),
   id: Joi.string().required(),
+  expencesSource: Joi.string().optional(),
 });
 
 const deleteSchema = Joi.object({
