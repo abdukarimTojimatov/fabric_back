@@ -115,16 +115,32 @@ module.exports = {
   deleteOne: async function (req, res, next) {
     try {
       const { id } = req.params;
-      const deletedRawWaste = await RawWaste.findByIdAndDelete(id).exec();
 
-      if (!deletedRawWaste) {
-        return res.status(404).json({ message: " RawWaste not found" });
+      // Step 1: Retrieve the RawWaste entry to be deleted
+      const rawWasteToDelete = await RawWaste.findById(id).exec();
+      if (!rawWasteToDelete) {
+        return res.status(404).json({ message: "RawWaste not found" });
       }
 
-      res.status(200).json({ message: " RawWaste deleted successfully" });
+      // Step 2: Find the corresponding stock item in the StockRawMaterial collection
+      const stockItem = await StockRawMaterial.findOne({
+        rawMaterial: rawWasteToDelete.rawMaterial,
+      }).exec();
+      if (!stockItem) {
+        throw new Error("Corresponding raw material not found in stock.");
+      }
+
+      // Step 3: Revert the quantity of the raw material in stock
+      stockItem.quantityInStock += rawWasteToDelete.quantity;
+      await stockItem.save();
+
+      // Step 4: Delete the RawWaste entry
+      await RawWaste.findByIdAndDelete(id).exec();
+
+      res.status(200).json({ message: "RawWaste deleted successfully" });
     } catch (err) {
       console.error(err);
-      next(new ErrorHandler(400, "Failed to delete  RawWaste", err.message));
+      next(new ErrorHandler(400, "Failed to delete RawWaste", err.message));
     }
   },
 
