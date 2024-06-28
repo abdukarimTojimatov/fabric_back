@@ -30,7 +30,9 @@ const readSchema = Joi.object({
 const findAll = Joi.object({
   limit: Joi.number().integer().optional(),
   page: Joi.number().integer().optional(),
-  search: Joi.string().optional(),
+  rawMaterial: Joi.string().optional(),
+  dateFrom: Joi.string().optional(),
+  dateTo: Joi.string().optional(),
 });
 
 module.exports = {

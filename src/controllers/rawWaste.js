@@ -1,6 +1,7 @@
 const RawWaste = require("../models/rawWaste");
 const StockRawMaterial = require("../models/stockRawMaterial");
 const { ErrorHandler } = require("../util/error");
+const mongoose = require("mongoose");
 
 module.exports = {
   addNew: async function (req, res, next) {
@@ -147,7 +148,12 @@ module.exports = {
   findOne: async function (req, res, next) {
     try {
       const { id } = req.params;
-      const rawWaste = await RawWaste.findById(id).exec();
+      const rawWaste = await RawWaste.findById(id)
+        .populate({
+          path: "rawMaterial",
+          select: "name unitOfMeasurement",
+        })
+        .exec();
 
       if (!rawWaste) {
         return res.status(404).json({ message: " RawWaste not found" });
@@ -162,19 +168,48 @@ module.exports = {
 
   findAll: async function (req, res, next) {
     try {
-      const { limit, page, search } = req.body;
+      const { limit, page, search, dateFrom, dateTo, rawMaterial } = req.body;
       let query = {};
       if (search) {
         query["name"] = { $regex: new RegExp(search, "i") };
       }
 
       let rawWastes;
+      function parseDate(dateString, endOfDay = false) {
+        const [year, month, day] = dateString.split(":");
+        if (endOfDay) {
+          return `${year}-${month}-${day}-23:59`;
+        }
+        return `${year}-${month}-${day}-00:00`;
+      }
+
+      if (dateFrom && dateTo) {
+        const fromDate = parseDate(dateFrom);
+        const toDate = parseDate(dateTo, true);
+        query.date = { $gte: fromDate, $lte: toDate };
+      }
+
+      if (rawMaterial) {
+        query.rawMaterial = new mongoose.Types.ObjectId(rawMaterial);
+      }
+
       if (!req.body.page || !req.body.limit) {
-        rawWastes = await RawWaste.find(query);
+        rawWastes = await RawWaste.find(query)
+          .populate({
+            path: "rawMaterial",
+            select: "name unitOfMeasurement",
+            model: "rawMaterial",
+            strictPopulate: false,
+          })
+          .exec();
       } else {
         const options = {
           limit: parseInt(limit),
           page: parseInt(page),
+          populate: {
+            path: "rawMaterial",
+            select: "name unitOfMeasurement",
+          },
         };
         rawWastes = await RawWaste.paginate(query, options);
       }

@@ -19,6 +19,7 @@ module.exports = {
         shippingCost,
         orderNotes,
         items,
+        discountObject,
       } = req.body;
       const user = req.user._id;
 
@@ -30,6 +31,7 @@ module.exports = {
         oneUSDCurrency,
         shippingCost,
         user,
+        discountObject,
       });
 
       // Process each item in the order
@@ -123,6 +125,11 @@ module.exports = {
         totalSalesOrderOriginAmount += salesOrderItem.total_origin_amount;
         totalSalesOrderIncomeAmount += salesOrderItem.total_income_amount;
       });
+
+      // Apply the discount to the total amount
+      if (discountObject && discountObject.discountAmount) {
+        totalSalesOrderAmount -= discountObject.discountAmount;
+      }
 
       // Set totals in the sales order
       salesOrder.total_amount = totalSalesOrderAmount;
@@ -787,6 +794,74 @@ module.exports = {
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to find purchases", err.message));
+    }
+  },
+  applyDiscountToSalesOrder: async function (req, res, next) {
+    try {
+      const { discountObject, salesOrderId } = req.body;
+
+      // Step 1: Retrieve the sales order by ID
+      const salesOrder = await SalesOrder.findById(salesOrderId).exec();
+      if (!salesOrder) {
+        return res.status(404).json({ message: "SalesOrder not found" });
+      }
+
+      // Step 2: Check and add the new discount to any existing discount
+      let previousDiscountAmount = 0;
+      if (
+        salesOrder.discountObject &&
+        salesOrder.discountObject.discountAmount
+      ) {
+        previousDiscountAmount = salesOrder.discountObject.discountAmount;
+      }
+
+      if (discountObject && discountObject.discountAmount) {
+        const newDiscountAmount = discountObject.discountAmount;
+        salesOrder.total_amount -= newDiscountAmount;
+        discountObject.discountAmount += previousDiscountAmount;
+        salesOrder.discountObject = discountObject;
+      } else {
+        return res.status(400).json({ message: "Invalid discountObject" });
+      }
+
+      // Step 3: Recalculate the remaining debt
+      const previousTotalDebt = salesOrder.totalDebt;
+      salesOrder.totalDebt = Math.max(
+        salesOrder.total_amount - salesOrder.totalPaid,
+        0
+      );
+
+      // Step 4: Update the payment status
+      if (salesOrder.totalDebt === 0) {
+        salesOrder.paymentStatus = "paid";
+      } else if (salesOrder.totalPaid > 0) {
+        salesOrder.paymentStatus = "partially-paid";
+      } else {
+        salesOrder.paymentStatus = "unpaid";
+      }
+
+      // Step 5: Adjust the customer's debt
+      const customer = await Customer.findById(salesOrder.customer).exec();
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+
+      customer.customerDebt -= previousTotalDebt - salesOrder.totalDebt;
+      await customer.save();
+
+      // Step 6: Save the updated sales order
+      await salesOrder.save();
+
+      res.status(200).json({ salesOrder });
+    } catch (err) {
+      console.error(err);
+      next(
+        new ErrorHandler(
+          400,
+          "Failed to apply discount to sales order",
+          err.message
+        )
+      );
     }
   },
 };

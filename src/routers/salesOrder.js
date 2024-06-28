@@ -28,4 +28,9 @@ router
   .route("/allItems")
   .post(permitFindALl, Controller.findAllSalesOrderItems);
 
+const permitUpdateDiscount = permit("salesOrder", ["update"]);
+router
+  .route("/discount")
+  .post(permitUpdateDiscount, Controller.applyDiscountToSalesOrder);
+
 module.exports = router;
