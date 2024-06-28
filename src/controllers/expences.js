@@ -23,7 +23,7 @@ module.exports = {
       switch (expencesSource) {
         case "walletCash":
           if (wallet.walletCash < amount) {
-            throw new Error("Sizda yetarli miqdorda naqd pul mavjud emas");
+            throw new Error("Sizda yetarli miqdorda pul mavjud emas");
           }
           wallet.walletCash -= amount;
           break;

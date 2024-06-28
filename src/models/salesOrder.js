@@ -22,6 +22,7 @@ const salesOrderSchema = new mongoose.Schema(
     total_origin_amount: { type: Number, required: true },
     total_income_amount: { type: Number, required: true },
     amountFromCustomerMoney: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 },
     totalDebt: { type: Number, default: 0 },
     totalPaid: { type: Number, default: 0 },
     total_onUSD_amount: { type: Number, default: 0 },
