@@ -66,16 +66,14 @@ module.exports = {
       // Step 4: Calculate quantity differences
       const quantityDifference = quantity - oldRawWaste.quantity;
 
-      // Step 5: Check if there is sufficient quantity in stock for the update
-      if (
-        quantityDifference > 0 &&
-        newStockItem.quantityInStock < quantityDifference
-      ) {
-        throw new Error("Insufficient quantity in stock.");
-      }
-
-      // Step 6: If the raw material is changed, adjust the stock for the old raw material
+      // Step 5: If the raw material is changed, check the new raw material's stock
       if (oldRawWaste.rawMaterial.toString() !== rawMaterial) {
+        if (newStockItem.quantityInStock < quantity) {
+          throw new Error(
+            "Insufficient quantity in stock for the new raw material."
+          );
+        }
+
         const oldStockItem = await StockRawMaterial.findOne({
           rawMaterial: oldRawWaste.rawMaterial,
         });
@@ -83,20 +81,26 @@ module.exports = {
           throw new Error("Old raw material not found in stock.");
         }
 
-        // Step 7: Revert the quantity in stock for the old raw material
+        // Revert the quantity in stock for the old raw material
         oldStockItem.quantityInStock += oldRawWaste.quantity;
         await oldStockItem.save();
 
-        // Step 8: Update the stock quantity for the new raw material
+        // Update the stock quantity for the new raw material
         newStockItem.quantityInStock -= quantity;
       } else {
-        // Step 9: If the raw material is not changed, just update the stock quantity
+        // If the raw material is not changed, just update the stock quantity
+        if (
+          quantityDifference > 0 &&
+          newStockItem.quantityInStock < quantityDifference
+        ) {
+          throw new Error("Insufficient quantity in stock.");
+        }
         newStockItem.quantityInStock -= quantityDifference;
       }
 
       await newStockItem.save();
 
-      // Step 10: Update the RawWaste entry
+      // Step 6: Update the RawWaste entry
       const updatedRawWaste = await RawWaste.findByIdAndUpdate(id, req.body, {
         new: true,
       }).exec();
