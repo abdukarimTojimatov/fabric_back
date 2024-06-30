@@ -36,6 +36,7 @@ module.exports = {
             totalPaid: { $sum: "$totalPaid" },
             total_onUSD_amount: { $sum: "$total_onUSD_amount" },
             totalShippingCostOnSale: { $sum: "$shippingCost" },
+            totalDiscount: { $sum: "$discountObject.discountAmount" },
           },
         },
         {
@@ -119,6 +120,7 @@ module.exports = {
           totalPaid: 0,
           total_onUSD_amount: 0,
           totalShippingCostOnSale: 0,
+          totalDiscount: 0,
         };
 
         const expense = totalDailyExpenses.find(
@@ -147,6 +149,7 @@ module.exports = {
           total_onUSD_amount: sale.total_onUSD_amount,
           totalDebt: sale.totalDebt,
           totalPaid: sale.totalPaid,
+          totalDiscount: sale.totalDiscount,
           totalShippingCostOnSale: sale.totalShippingCostOnSale,
           total_expenses: expense.total_expenses,
           total_salaries: salary.total_salaries,
@@ -189,6 +192,7 @@ module.exports = {
             totalPaid: { $sum: "$totalPaid" },
             total_onUSD_amount: { $sum: "$total_onUSD_amount" },
             totalShippingCostOnSale: { $sum: "$shippingCost" },
+            totalDiscount: { $sum: "$discountObject.discountAmount" },
           },
         },
         {
@@ -268,8 +272,10 @@ module.exports = {
           total_income_amount: 0,
           totalDebt: 0,
           totalPaid: 0,
+          totalDebt: 0,
           total_onUSD_amount: 0,
           totalShippingCostOnSale: 0,
+          totalDiscount: 0,
         };
         const expense = totalMonthlyExpenses.find(
           (e) => e._id.month === String(month).padStart(2, "0")
@@ -301,6 +307,7 @@ module.exports = {
           totalShippingCostOnSale: sale.totalShippingCostOnSale,
           total_expenses: expense.total_expenses,
           total_salaries: salary.total_salaries,
+          totalDiscount: sale.totalDiscount,
           totalShippingCostOnBuying: stockPurchase.total_shippingCost,
           totalCostTotalOnUSDOnBuying: stockPurchase.total_costTotalOnUSD,
           totalCostTotalOnUZSOnBuying: stockPurchase.total_costTotal,
@@ -340,6 +347,7 @@ module.exports = {
             totalPaid: { $sum: "$totalPaid" },
             total_onUSD_amount: { $sum: "$total_onUSD_amount" },
             totalShippingCostOnSale: { $sum: "$shippingCost" },
+            totalDiscount: { $sum: "$discountObject.discountAmount" },
           },
         },
         {
@@ -424,6 +432,7 @@ module.exports = {
           totalPaid: 0,
           total_onUSD_amount: 0,
           totalShippingCostOnSale: 0,
+          totalDiscount: 0,
         };
         const expense = yearlyExpenses.find((e) => e._id.year === year) || {
           total_expenses: 0,
@@ -449,6 +458,7 @@ module.exports = {
           total_onUSD_amount: sale.total_onUSD_amount,
           totalDebt: sale.totalDebt,
           totalPaid: sale.totalPaid,
+          totalDiscount: sale.totalDiscount,
           totalShippingCostOnSale: sale.totalShippingCostOnSale,
           total_expenses: expense.total_expenses,
           total_salaries: salary.total_salaries,

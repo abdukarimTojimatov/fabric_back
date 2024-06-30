@@ -152,6 +152,8 @@ module.exports = {
         .populate({
           path: "rawMaterial",
           select: "name unitOfMeasurement",
+          model: RawMaterial,
+          strictPopulate: false,
         })
         .exec();
 
@@ -198,7 +200,7 @@ module.exports = {
           .populate({
             path: "rawMaterial",
             select: "name unitOfMeasurement",
-            model: "rawMaterial",
+            model: "RawMaterial",
             strictPopulate: false,
           })
           .exec();
@@ -209,6 +211,8 @@ module.exports = {
           populate: {
             path: "rawMaterial",
             select: "name unitOfMeasurement",
+            model: "RawMaterial",
+            strictPopulate: false,
           },
         };
         rawWastes = await RawWaste.paginate(query, options);
