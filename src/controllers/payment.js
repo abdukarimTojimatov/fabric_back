@@ -93,20 +93,77 @@ module.exports = {
   },
 
   updateOne: async function (req, res, next) {
+    let payment = req.body;
     try {
-      const { id } = req.params;
-      const updatedPayment = await Payment.findByIdAndUpdate(id, req.body, {
-        new: true,
-      }).exec();
-
-      if (!updatedPayment) {
-        return res.status(404).json({ message: "Payment not found" });
+      const customer = await Customer.findById(payment.customer);
+      if (!customer) {
+        throw new Error("Customer not found");
       }
 
-      res.status(200).json(updatedPayment);
+      let remainingAmount = payment.amount;
+
+      const salesOrders = await SalesOrder.find({
+        customer: payment.customer,
+        paymentStatus: { $in: ["unpaid", "partially-paid"] },
+      }).sort({ createdAt: 1 });
+
+      for (let order of salesOrders) {
+        if (remainingAmount <= 0) break;
+
+        const unpaidAmount = order.totalDebt;
+        const amountToApply = Math.min(unpaidAmount, remainingAmount);
+
+        order.totalPaid += amountToApply;
+        order.totalDebt -= amountToApply;
+        remainingAmount -= amountToApply;
+
+        if (order.totalPaid == order.total_amount) {
+          order.paymentStatus = "paid";
+        } else {
+          order.paymentStatus = "partially-paid";
+        }
+
+        await order.save();
+      }
+
+      if (remainingAmount > 0) {
+        customer.customerMoney += remainingAmount;
+      }
+      customer.customerDebt -= payment.amount - remainingAmount;
+      await customer.save();
+
+      // Find or create the wallet
+      let wallet = await Wallet.findOne({});
+      if (!wallet) {
+        wallet = new Wallet({
+          walletCash: 0,
+          walletCard: 0,
+          walletBank: 0,
+        });
+      }
+
+      // Update the wallet based on the payment method
+      switch (payment.method) {
+        case "cash":
+          wallet.walletCash += payment.amount;
+          break;
+        case "card":
+          wallet.walletCard += payment.amount;
+          break;
+        case "transfer":
+          wallet.walletBank += payment.amount;
+          break;
+        default:
+          throw new Error(`Invalid payment method ${payment.method}`);
+      }
+      await wallet.save();
+
+      const newPayment = new Payment(req.body);
+      const doc = await newPayment.save();
+      res.status(201).json(doc);
     } catch (err) {
       console.error(err);
-      next(new ErrorHandler(400, "Failed to update payment", err.message));
+      next(new ErrorHandler(400, "Failed to add new payment", err.message));
     }
   },
 
