@@ -65,7 +65,7 @@ module.exports = {
       let salary = await Salary.findById(id);
 
       if (!salary) {
-        return res.status(404).json({ message: "Salary not found" });
+        return res.status(404).json({ message: "Ish haqi topilmadi" });
       }
 
       // Update the fields of the salary document except for users
@@ -101,35 +101,37 @@ module.exports = {
       salary.totalSalary = totalSalary;
 
       // Save the updated salary document
-      const updatedSalary = await salary.save();
 
       // Calculate the difference between the old and new total salaries
-      let difference = updatedSalary.totalSalary - oldSalary.totalSalary;
+      let difference = totalSalary - oldSalary.totalSalary;
+
       const wallet = await Wallet.findOne();
       if (!wallet) {
-        throw new Error("Wallet not found");
+        throw new Error("Hamyon topilmadi");
       }
-
+      console.log("differene", difference);
       // Deduct or add the salary amount difference to the specified wallet source
       if (salarySource === "walletCash") {
         wallet.walletCash -= difference;
         if (wallet.walletCash < 0)
-          throw new Error("Insufficient funds in walletCash");
+          throw new Error(
+            "Naqd pul kassangizda yetarli miqdorda pul mavjud emas"
+          );
       } else if (salarySource === "walletCard") {
         wallet.walletCard -= difference;
         if (wallet.walletCard < 0)
-          throw new Error("Insufficient funds in walletCard");
+          throw new Error("Kartangizda  yetarli miqdorda pul mavjud emas");
       } else if (salarySource === "walletBank") {
         wallet.walletBank -= difference;
         if (wallet.walletBank < 0)
-          throw new Error("Insufficient funds in walletBank");
+          throw new Error("Bank kassangizda yetarli miqdorda pul mavjud emas");
       } else {
         throw new Error("Invalid salarySource");
       }
 
       // Save the updated wallet document
       await wallet.save();
-
+      const updatedSalary = await salary.save();
       res.status(200).json(updatedSalary);
     } catch (err) {
       console.error(err);
