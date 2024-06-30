@@ -1,12 +1,53 @@
 const Salary = require("../models/salary");
 const User = require("../models/user");
+const Wallet = require("../models/wallet");
 const { ErrorHandler } = require("../util/error");
 
 module.exports = {
   addNew: async function (req, res, next) {
     try {
-      const newSalary = new Salary(req.body);
+      const { users, salarySource } = req.body;
+
+      // Step 1: Calculate the totalSalary
+      let totalSalary = 0;
+      users.forEach((user) => {
+        user.monthlySalary = user.userWorkCount * user.dailySalary;
+        totalSalary += user.monthlySalary;
+      });
+
+      // Step 2: Retrieve the wallet document
+      const wallet = await Wallet.findOne();
+      if (!wallet) {
+        throw new Error("Wallet not found");
+      }
+
+      // Step 3: Deduct the salary amount from the specified wallet source
+      if (salarySource === "walletCash") {
+        wallet.walletCash -= totalSalary;
+        if (wallet.walletCash < 0)
+          throw new Error("Insufficient funds in walletCash");
+      } else if (salarySource === "walletCard") {
+        wallet.walletCard -= totalSalary;
+        if (wallet.walletCard < 0)
+          throw new Error("Insufficient funds in walletCard");
+      } else if (salarySource === "walletBank") {
+        wallet.walletBank -= totalSalary;
+        if (wallet.walletBank < 0)
+          throw new Error("Insufficient funds in walletBank");
+      } else {
+        throw new Error("Invalid salarySource");
+      }
+
+      // Step 4: Save the updated wallet document
+      await wallet.save();
+
+      // Step 5: Create a new salary document
+      const newSalary = new Salary({
+        ...req.body,
+        totalSalary: totalSalary,
+      });
       const doc = await newSalary.save();
+
       res.status(201).json(doc);
     } catch (err) {
       console.error(err);
@@ -17,9 +58,10 @@ module.exports = {
   updateOne: async function (req, res, next) {
     try {
       const { id } = req.params;
-      const { users, ...updateData } = req.body;
+      const { users, salarySource, ...updateData } = req.body;
 
       // Find the salary document by ID
+      let oldSalary = await Salary.findById(id);
       let salary = await Salary.findById(id);
 
       if (!salary) {
@@ -53,13 +95,40 @@ module.exports = {
 
       // Calculate totalSalary
       const totalSalary = salary.users.reduce(
-        (acc, user) => acc + parseFloat(user.monthlySalary),
+        (acc, user) => acc + user.userWorkCount * user.dailySalary,
         0
       );
       salary.totalSalary = totalSalary;
 
       // Save the updated salary document
       const updatedSalary = await salary.save();
+
+      // Calculate the difference between the old and new total salaries
+      let difference = updatedSalary.totalSalary - oldSalary.totalSalary;
+      const wallet = await Wallet.findOne();
+      if (!wallet) {
+        throw new Error("Wallet not found");
+      }
+
+      // Deduct or add the salary amount difference to the specified wallet source
+      if (salarySource === "walletCash") {
+        wallet.walletCash -= difference;
+        if (wallet.walletCash < 0)
+          throw new Error("Insufficient funds in walletCash");
+      } else if (salarySource === "walletCard") {
+        wallet.walletCard -= difference;
+        if (wallet.walletCard < 0)
+          throw new Error("Insufficient funds in walletCard");
+      } else if (salarySource === "walletBank") {
+        wallet.walletBank -= difference;
+        if (wallet.walletBank < 0)
+          throw new Error("Insufficient funds in walletBank");
+      } else {
+        throw new Error("Invalid salarySource");
+      }
+
+      // Save the updated wallet document
+      await wallet.save();
 
       res.status(200).json(updatedSalary);
     } catch (err) {

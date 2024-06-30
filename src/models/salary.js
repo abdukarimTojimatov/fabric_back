@@ -19,9 +19,6 @@ const userSchema = new Schema({
   monthlySalary: {
     type: Number,
     required: true,
-    default: function () {
-      return this.userWorkCount * this.dailySalary;
-    },
   },
 });
 
@@ -39,6 +36,11 @@ const salarySchema = new Schema(
       type: Number,
       required: false,
     },
+    salarySource: {
+      type: String,
+      required: true,
+      enum: ["walletCash", "walletCard", "walletBank"],
+    },
     users: [userSchema],
     date: {
       type: String,
@@ -48,15 +50,6 @@ const salarySchema = new Schema(
   { timestamps: true, versionKey: false }
 );
 
-salarySchema.pre("save", async function (next) {
-  const totalSalary = this.users.reduce((acc, user) => {
-    return acc + parseFloat(user.monthlySalary);
-  }, 0);
-
-  this.totalSalary = totalSalary;
-
-  next();
-});
 salarySchema.index({ year: 1, month: 1 }, { unique: true });
 salarySchema.plugin(mongoosePaginate);
 const Salary = mongoose.model("Salary", salarySchema);

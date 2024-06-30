@@ -4,6 +4,7 @@ const createSchema = Joi.object({
   year: Joi.number().required(),
   month: Joi.number().required(),
   totalSalary: Joi.number().optional(),
+  salarySource: Joi.string().required(),
   users: Joi.array()
     .items(
       Joi.object({
@@ -19,6 +20,7 @@ const updateSchema = Joi.object({
   year: Joi.number().optional(),
   month: Joi.number().optional(),
   totalSalary: Joi.number().optional().min(0),
+  salarySource: Joi.string().optional(),
   users: Joi.array()
     .items(
       Joi.object({
