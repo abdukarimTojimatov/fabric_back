@@ -27,7 +27,6 @@ router.use("/supplier", SupplierRouter);
 router.use("/stockRawMaterial", StockRawMaterialRouter);
 router.use("/stockPurchase", StockPurchaseRouter);
 router.use("/stockProduct", StockProductRouter);
-// router.use("/salesOrderItem", SalesOrderItemRouter);
 router.use("/salesOrder", SalesOrderRouter);
 router.use("/rawMaterial", RawMaterialRouter);
 router.use("/rawWaste", RawWasteRouter);

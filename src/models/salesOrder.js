@@ -36,6 +36,11 @@ const salesOrderSchema = new mongoose.Schema(
       discountAmount: { type: Number, default: 0 },
       discountNote: { type: String },
     },
+    shippingCostSource: {
+      type: String,
+      required: false,
+      enum: ["walletCash", "walletCard", "walletBank"],
+    },
     date: {
       type: String,
       default: moment().format("YYYY-MM-DD-HH:mm"),

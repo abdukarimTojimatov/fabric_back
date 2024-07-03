@@ -12,8 +12,6 @@ const {
   findAll,
 } = require("../validators/stockPurchase");
 
-const { uploadAvatar } = require("../util/avatar-upload");
-
 router.use(authenticate);
 
 const permitAdd = permit("stockPurchase", ["create"]);

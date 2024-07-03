@@ -46,11 +46,11 @@ const stockPurchaseSchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
-    total_amountWithShippingCost: { type: Number, required: true },
     costTotal: {
       type: Number,
       min: 0,
     },
+    total_amountWithShippingCost: { type: Number, required: true },
     costPerUnitOnUSD: {
       type: Number,
       min: 0,
@@ -77,6 +77,11 @@ const stockPurchaseSchema = new mongoose.Schema(
         "metrkv",
         "tonna",
       ],
+    },
+    shippingCostSource: {
+      type: String,
+      required: false,
+      enum: ["walletCash", "walletCard", "walletBank"],
     },
     date: {
       type: String,

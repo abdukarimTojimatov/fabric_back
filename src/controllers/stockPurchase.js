@@ -1,5 +1,6 @@
 const StockPurchase = require("../models/stockPurchase");
 const RawMaterial = require("../models/rawMaterial");
+const Wallet = require("../models/wallet");
 const { ErrorHandler } = require("../util/error");
 const StockRawMaterial = require("../models/stockRawMaterial");
 const mongoose = require("mongoose");
@@ -9,10 +10,51 @@ module.exports = {
     try {
       const material = await RawMaterial.findById(req.body.rawMaterial).exec();
 
+      // Find or create the wallet
+      let wallet = await Wallet.findOne({});
+      if (!wallet) {
+        wallet = new Wallet({
+          walletCash: 0,
+          walletCard: 0,
+          walletBank: 0,
+        });
+      }
+
+      // Deduct the amount from the appropriate wallet field
+      if (req.body.shippingCostSource && req.body.shippingCost > 0) {
+        switch (req.body.shippingCostSource) {
+          case "walletCash":
+            if (wallet.walletCash < req.body.shippingCost) {
+              throw new Error("Sizda yetarli miqdorda pul mavjud emas");
+            }
+            wallet.walletCash -= req.body.shippingCost;
+            break;
+          case "walletCard":
+            if (wallet.walletCard < req.body.shippingCost) {
+              throw new Error(
+                "Sizda yetarli miqdorda cartangizda pul mavjud emas"
+              );
+            }
+            wallet.walletCard -= req.body.shippingCost;
+            break;
+          case "walletBank":
+            if (wallet.walletBank < req.body.shippingCost) {
+              throw new Error(
+                "Sizda yetarli miqdorda bankingizda pul mavjud emas"
+              );
+            }
+            wallet.walletBank -= req.body.shippingCost;
+            break;
+          default:
+            throw new Error(`Invalid expense source ${shippingCostSource}`);
+        }
+      }
+
       const exceedStockRawMaterial = await StockRawMaterial.findOne({
         rawMaterial: req.body.rawMaterial,
       }).exec();
 
+      let newPurchase;
       if (!exceedStockRawMaterial) {
         const newStock = new StockRawMaterial({
           rawMaterial: req.body.rawMaterial,
@@ -24,7 +66,7 @@ module.exports = {
         req.body.unitOfMeasurement = material.unitOfMeasurement;
         req.body.user = req.user._id;
 
-        const newPurchase = new StockPurchase({
+        newPurchase = new StockPurchase({
           supplier: req.body.supplier,
           user: req.user._id,
           rawMaterial: req.body.rawMaterial,
@@ -38,13 +80,11 @@ module.exports = {
             req.body.quantityPurchased * req.body.costPerUnitOnUSD,
           oneUSDCurrency: req.body.oneUSDCurrency,
           shippingCost: req.body.shippingCost,
+          shippingCostSource: req.body.shippingCostSource,
           total_amountWithShippingCost:
             req.body.quantityPurchased * req.body.costPerUnit +
             req.body.shippingCost,
         });
-
-        const doc = await newPurchase.save();
-        res.status(201).json(doc);
       } else {
         const updatedStockRawMaterial =
           await StockRawMaterial.findByIdAndUpdate(
@@ -58,7 +98,7 @@ module.exports = {
         req.body.unitOfMeasurement = material.unitOfMeasurement;
         req.body.user = req.user._id;
 
-        const newPurchase = new StockPurchase({
+        newPurchase = new StockPurchase({
           supplier: req.body.supplier,
           user: req.user._id,
           rawMaterial: req.body.rawMaterial,
@@ -68,6 +108,7 @@ module.exports = {
           costTotal: req.body.quantityPurchased * req.body.costPerUnit,
           costPerUnitOnUSD: req.body.costPerUnitOnUSD,
           unitOfMeasurement: req.body.unitOfMeasurement,
+          shippingCostSource: req.body.shippingCostSource,
           costTotalOnUSD:
             req.body.quantityPurchased * req.body.costPerUnitOnUSD,
           oneUSDCurrency: req.body.oneUSDCurrency,
@@ -76,9 +117,11 @@ module.exports = {
             req.body.quantityPurchased * req.body.costPerUnit +
             req.body.shippingCost,
         });
-        const doc = await newPurchase.save();
-        res.status(201).json(doc);
       }
+
+      const doc = await newPurchase.save();
+      await wallet.save();
+      res.status(201).json(doc);
     } catch (err) {
       console.error(err);
       next(new ErrorHandler(400, "Failed to add new purchase", err.message));

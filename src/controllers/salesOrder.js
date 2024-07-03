@@ -20,6 +20,7 @@ module.exports = {
         orderNotes,
         items,
         discountObject,
+        shippingCostSource,
       } = req.body;
       const user = req.user._id;
 
@@ -32,8 +33,50 @@ module.exports = {
         shippingCost,
         user,
         discountObject,
+        shippingCostSource,
       });
 
+      // Find or create the wallet
+      let wallet = await Wallet.findOne({});
+      if (!wallet) {
+        wallet = new Wallet({
+          walletCash: 0,
+          walletCard: 0,
+          walletBank: 0,
+        });
+      }
+
+      if (shippingCost > 0 && shippingCostSource) {
+        // Deduct the amount from the appropriate wallet field
+        switch (shippingCostSource) {
+          case "walletCash":
+            if (wallet.walletCash < shippingCost) {
+              throw new Error(
+                "Yo'lkira uchun Sizda yetarli miqdorda naqd pul mavjud emas"
+              );
+            }
+            wallet.walletCash -= shippingCost;
+            break;
+          case "walletCard":
+            if (wallet.walletCard < shippingCost) {
+              throw new Error(
+                "Yo'lkira uchun Sizda yetarli miqdorda cartangizda pul mavjud emas"
+              );
+            }
+            wallet.walletCard -= shippingCost;
+            break;
+          case "walletBank":
+            if (wallet.walletBank < shippingCost) {
+              throw new Error(
+                "Yo'lkira uchun Sizda yetarli miqdorda bankingizda pul mavjud emas"
+              );
+            }
+            wallet.walletBank -= shippingCost;
+            break;
+          default:
+            throw new Error(`Invalid expense source ${shippingCostSource}`);
+        }
+      }
       // Process each item in the order
       const itemPromises = items.map(async (item) => {
         const product = await Product.findById(item.product);
@@ -229,7 +272,7 @@ module.exports = {
       // Update customer's debt
       customerObj.customerDebt += remainingDebt;
       await customerObj.save();
-
+      await wallet.save();
       res.status(201).json({ salesOrder });
     } catch (err) {
       console.error(err);
