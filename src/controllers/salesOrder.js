@@ -81,7 +81,7 @@ module.exports = {
       const itemPromises = items.map(async (item) => {
         const product = await Product.findById(item.product);
         if (!product) {
-          throw new Error(`Product ${item.product} not found`);
+          throw new Error(`Bu mahsulot ${item.product} topilmadi`);
         }
 
         const total_amount = item.quantity * item.product_sellingPrice;
@@ -95,7 +95,9 @@ module.exports = {
           product: item.product,
         });
         if (!stockProduct) {
-          throw new Error(`Stock for product ${product.name} not found`);
+          throw new Error(
+            `Omborda bunday mahsulot ${product.name} mavjud emas`
+          );
         }
 
         // Check if there is enough stock
@@ -185,7 +187,7 @@ module.exports = {
       const customerObj = await Customer.findById(customer);
 
       if (!customerObj) {
-        throw new Error(`Customer ${customer} not found`);
+        throw new Error(`Bu mijoz ${customer} topilmadi`);
       }
 
       // Process payments
@@ -196,6 +198,7 @@ module.exports = {
             salesOrderId: salesOrder._id,
             amount: payment.amount,
             method: payment.method,
+            paymentFrom: payment.paymentFrom,
             amountOnUSD: payment.amountOnUSD,
             customer: salesOrder.customer,
             oneUSDCurrency: oneUSDCurrency,

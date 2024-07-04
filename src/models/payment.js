@@ -12,6 +12,10 @@ const paymentSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    paymentFrom: {
+      type: String,
+      required: false,
+    },
     amountOnUSD: {
       type: Number,
       required: false,

@@ -50,7 +50,7 @@ const stockPurchaseSchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
-    total_amountWithShippingCost: { type: Number, required: true },
+    total_amountWithShippingCost: { type: Number, required: false },
     costPerUnitOnUSD: {
       type: Number,
       min: 0,

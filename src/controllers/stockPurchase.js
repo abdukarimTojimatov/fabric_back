@@ -81,9 +81,9 @@ module.exports = {
           oneUSDCurrency: req.body.oneUSDCurrency,
           shippingCost: req.body.shippingCost,
           shippingCostSource: req.body.shippingCostSource,
-          total_amountWithShippingCost:
-            req.body.quantityPurchased * req.body.costPerUnit +
-            req.body.shippingCost,
+          // total_amountWithShippingCost:
+          //   req.body.quantityPurchased * req.body.costPerUnit +
+          //   req.body.shippingCost,
         });
       } else {
         const updatedStockRawMaterial =
@@ -113,9 +113,9 @@ module.exports = {
             req.body.quantityPurchased * req.body.costPerUnitOnUSD,
           oneUSDCurrency: req.body.oneUSDCurrency,
           shippingCost: req.body.shippingCost,
-          total_amountWithShippingCost:
-            req.body.quantityPurchased * req.body.costPerUnit +
-            req.body.shippingCost,
+          // total_amountWithShippingCost:
+          //   req.body.quantityPurchased * req.body.costPerUnit +
+          //   req.body.shippingCost,
         });
       }
 

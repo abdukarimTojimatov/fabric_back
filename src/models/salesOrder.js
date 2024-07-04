@@ -27,6 +27,7 @@ const salesOrderSchema = new mongoose.Schema(
     total_onUSD_amount: { type: Number, default: 0 },
     shippingCost: { type: Number, default: 0 },
     oneUSDCurrency: { type: Number },
+    paymentCompany: { type: String },
     paymentStatus: {
       type: String,
       enum: ["unpaid", "partially-paid", "paid"],

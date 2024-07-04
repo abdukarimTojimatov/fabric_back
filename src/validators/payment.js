@@ -6,6 +6,7 @@ const createSchema = Joi.object({
   oneUSDCurrency: Joi.number().optional().min(0),
   method: Joi.string().valid("cash", "card", "transfer").required(),
   customer: Joi.string().optional(),
+  paymentFrom: Joi.string().optional(),
 });
 
 const updateSchema = Joi.object({
