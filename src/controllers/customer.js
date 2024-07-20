@@ -7,11 +7,11 @@ module.exports = {
     try {
       let customer = await Customer.findOne({ phone: req.body.phone }).exec();
 
-      if (customer) {
-        return res
-          .status(400)
-          .json({ message: "customer with this phone number already exists." });
-      }
+      // if (customer) {
+      //   return res
+      //     .status(400)
+      //     .json({ message: "customer with this phone number already exists." });
+      // }
       req.body.startedDate = new Date();
 
       const newCustomerr = new Customer(req.body);
