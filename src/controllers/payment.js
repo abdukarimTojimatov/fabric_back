@@ -21,29 +21,41 @@ module.exports = {
         paymentStatus: { $in: ["unpaid", "partially-paid"] },
       }).sort({ createdAt: 1 });
 
-      for (let order of salesOrders) {
-        if (remainingAmount <= 0) break;
+      if (salesOrders.length > 0) {
+        for (let order of salesOrders) {
+          if (remainingAmount <= 0) break;
 
-        const unpaidAmount = order.totalDebt;
-        const amountToApply = Math.min(unpaidAmount, remainingAmount);
+          const unpaidAmount = order.totalDebt;
+          const amountToApply = Math.min(unpaidAmount, remainingAmount);
 
-        order.totalPaid += amountToApply;
-        order.totalDebt -= amountToApply;
-        remainingAmount -= amountToApply;
+          order.totalPaid += amountToApply;
+          order.totalDebt -= amountToApply;
+          remainingAmount -= amountToApply;
 
-        if (order.totalPaid == order.total_amount) {
-          order.paymentStatus = "paid";
-        } else {
-          order.paymentStatus = "partially-paid";
+          if (order.totalPaid == order.total_amount) {
+            order.paymentStatus = "paid";
+          } else {
+            order.paymentStatus = "partially-paid";
+          }
+
+          await order.save();
         }
-
-        await order.save();
       }
 
       if (remainingAmount > 0) {
-        customer.customerMoney += remainingAmount;
+        if (customer.customerDebt > 0) {
+          const debtPayment = Math.min(customer.customerDebt, remainingAmount);
+          customer.customerDebt -= debtPayment;
+          remainingAmount -= debtPayment;
+        }
+
+        if (remainingAmount > 0) {
+          customer.customerMoney += remainingAmount;
+        }
+      } else {
+        customer.customerDebt -= payment.amount;
       }
-      customer.customerDebt -= payment.amount - remainingAmount;
+
       await customer.save();
 
       // Find or create the wallet

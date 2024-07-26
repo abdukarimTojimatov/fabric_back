@@ -68,7 +68,7 @@ module.exports = {
       const product = await Product.findById(id)
         .populate({
           path: "ingredients.rawMaterial",
-          select: "name",
+          select: "name unitOfMeasurement",
         })
         .exec();
 
